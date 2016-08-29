@@ -1,30 +1,40 @@
 # NuGet package for V8 JavaScript Engine
 
-## Building
-Tools required to build V8 for Windows:
+This package contains prebuild V8 binaries, debug symbols and as well long
+includes and libraries required to embed the JavaScript engine into C++ project.
+
+
+## Usage
+
+To use V8 in a project install the package `v8-$PlatformToolset-$Platform.$Version`
+from a console with `nuget install` commmand or from inside of Visual Studio
+(see menu option *Tools -> NuGet Package Manager -> Manage NuGet Packages for Solution...*)
+where
+
+  * `$PlatformToolset` is the C++ toolset version used in Visual Studio:
+    * `v120` - for Visual Studio 2013
+    * `v140` - for Visual Studio 2015
+    * `vXYZ` - for next Visual Studio version
+
+  * `$Platform` is a target platform type, currenlty `x86` or `x64`.
+
+  * `$Version` is the actual V8 version, one of https://chromium.googlesource.com/v8/v8.git/+refs
+
+
+After successful package installation add `#include <v8.h>` in a C++ 
+project and build it. All neccessary files (*.lib, *.dll, *.pdb) should be
+referenced in the project automatically with MsBuild property sheets.
+
+## How to build
+
+This section is mostly for the package maintainers who wants to update V8.
+
+Tools required to build V8 NuGet package on Windows:
 
   * Visual C++ toolset (version >=2013)
   * Python 2.X
+  * Git
   * NuGet (https://dist.nuget.org/index.html)
 
 1. Run `build.py` with optional V8 version argument.
-2. After successful build publish `nuget/*.nupkg` files.
-
-## Using the package
-
-To use V8 in a project please install the package `v8-$PlatformToolset-$Platform.$version`
-from a console with `nuget install` commmand or from inside of Visual Studio
-(see menu option *Tools -> NuGet Package Manager -> Manage NuGet Packages for Solution...*)
-
-  where
-
-$PlatformToolset is a C++ toolset version used in Visual Studio:
-  * `v120` - for Visual Studio 2013
-  * `v140` - for Visual Studio 2015
-  * `vXYZ` - for next Visual Studio version
-
-$Platform is a target platfor type, currenlty `x86` and `x64`.
-
-After successful package installation just #include <v8.h> in your C++ 
-project and build it. All neccessary files (*.lib, *.dll, *.pdb) should be
-referenced to the project automatically with MsBuild property sheets.
+2. Publish `nuget/*.nupkg` files after successful build.
