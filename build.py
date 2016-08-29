@@ -9,11 +9,16 @@ import subprocess
 import shutil
 
 V8_URL = 'https://chromium.googlesource.com/v8/v8.git'
-V8_VERSION = sys.argv[1] if len(sys.argv) > 1 else 'HEAD'
+V8_VERSION = sys.argv[1] if len(sys.argv) > 1 else ''
 
-PLATFORMS = ['x86',
- #'x64'
- ]
+# Use only Last Known Good Revision branches
+if V8_VERSION == '':
+	V8_VERSION = 'lkgr' 
+elif V8_VERSION.count('.') < 3 and all(x.isdigit() for x in V8_VERSION.split('.')):
+	V8_VERSION += '-lkgr' 
+
+
+PLATFORMS = ['x86', 'x64']
 CONFIGURATIONS = ['Debug', 'Release']
 
 NUGET = os.path.join(os.environ['LOCALAPPDATA'], 'nuget', 'NuGet.exe')
@@ -65,7 +70,7 @@ exec deps
 for dep in ['v8/base/trace_event/common', 'v8/build', 'v8/testing/gtest', 'v8/tools/gyp', 'v8/tools/clang', 'v8/third_party/icu']:
 	git_fetch(deps[dep], dep)
 
-## Get v8 version from defines in v8-version.h
+### Get v8 version from defines in v8-version.h
 version = v8_version()
 toolset=None
 
