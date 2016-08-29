@@ -18,7 +18,7 @@
   <files>
     <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\*.pdb" target="lib\Debug" />
     <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\*.pdb" target="lib\Release" />
-    <file src="v8.symbols.props" target="build\native\v8.symbols-$PlatformToolset$-$Platform$.props" />
+    <file src="v8.symbols-$PlatformToolset$-$Platform$.props" target="build\native" />
     <file src="..\readme.md" target="" />
   </files>
 </package>

@@ -25,12 +25,12 @@ def git_fetch(url, target):
 		ref = parts[1]
 	else:
 		ref = 'HEAD'
-	print 'Fetch %s@%s to %s' % (url, ref, target)
+	print 'Fetch {} into {}'.format(url, target)
 
-#	if not os.path.isdir(os.path.join(target, '.git')):
-#		subprocess.call(['git', 'init', target])
-#	subprocess.call(['git', 'fetch', '--depth=1', url, ref], cwd=target)
-#	subprocess.call(['git', 'checkout', '-B', 'Branch_' + ref, 'FETCH_HEAD'], cwd=target)
+	if not os.path.isdir(os.path.join(target, '.git')):
+		subprocess.call(['git', 'init', target])
+	subprocess.call(['git', 'fetch', '--depth=1', url, ref], cwd=target)
+	subprocess.call(['git', 'checkout', '-B', 'Branch_'+ref, 'FETCH_HEAD'], cwd=target)
 
 def v8_version():
 	text = open('v8/include/v8-version.h').read()
@@ -42,6 +42,10 @@ def vcx_toolset():
 	text = open('v8/src/v8.vcxproj').read()
 	return re.search('<PlatformToolset>(v\d+)</PlatformToolset>', text).group(1)
 
+def rmtree(dir):
+	if os.path.isdir(dir):
+		shutil.rmtree(dir)
+
 def copytree(src_dir, dest_dir):
 	if not os.path.isdir(dest_dir):
 		os.makedirs(dest_dir)
@@ -52,14 +56,16 @@ def copytree(src_dir, dest_dir):
 # __main__
 
 ## Fetch V8 sources
-git_fetch(V8_URL + '@' + V8_VERSION, 'v8')
+git_fetch(V8_URL+'@'+V8_VERSION, 'v8')
+
 ## Fetch V8 source dependencies
 Var = lambda name: vars[name]
 deps = open('v8/DEPS').read()
 exec deps
 for dep in ['v8/base/trace_event/common', 'v8/build', 'v8/testing/gtest', 'v8/tools/gyp', 'v8/tools/clang', 'v8/third_party/icu']:
 	git_fetch(deps[dep], dep)
-### Get v8 version from defines in v8-version.h
+
+## Get v8 version from defines in v8-version.h
 version = v8_version()
 toolset=None
 
@@ -71,38 +77,45 @@ for arch in PLATFORMS:
 		'src/v8.gyp'
 	]
 	subprocess.call([sys.executable, 'tools/gyp/gyp_main.py'] + gyp_args, cwd='v8')
+
 	### Get Visual C++ toolset from generated project file v8.vcxproj
 	if not toolset:
 		toolset = vcx_toolset()
-	for conf in CONFIGURATIONS:
-		print 'Build V8', version, arch, conf
+
+	### Build configurations for the current platform
+	for conf in []: #CONFIGURATIONS:
+		print 'Build V8 {} {} {}'.format(version, arch, conf)
+		build_dir = os.path.join('v8/build', conf)
+		dest_dir = os.path.join('v8/lib', toolset, arch, conf)
+		rmtree(build_dir)
+		rmtree(dest_dir)
 		msbuild_platform = 'Win32' if arch == 'x86' else arch
-		#build_args = ['/m', '/t:Rebuild', '/p:Configuration='+conf, '/p:Platform='+msbuild_platform]
-		build_args = ['/m', '/p:Configuration='+conf, '/p:Platform='+msbuild_platform]
+		build_args = ['/m', '/t:Rebuild', '/p:Configuration='+conf, '/p:Platform='+msbuild_platform]
 		subprocess.call(['msbuild', 'src\\v8.sln'] + build_args, cwd='v8')
 		### Save build result
-		dest_dir = os.path.join('v8/lib', toolset, arch, conf)
-		if os.path.isdir(dest_dir):
-			shutil.rmtree(dest_dir)
-		copytree(os.path.join('v8/build', conf, 'lib', 'v8.*'), dest_dir) # .lib and .exp
-		copytree(os.path.join('v8/build', conf, 'v8.*'), dest_dir) # .dll and .pdb
-		copytree(os.path.join('v8/build', conf, 'v8_lib*.lib'), dest_dir)
-		copytree(os.path.join('v8/build', conf, 'icu*.*'), dest_dir) # .dll, .pdb, .dat
+		for src in ['lib/v8.*', 'v8.*', 'v8_lib*', 'icu*.*']:
+			copytree(os.path.join(build_dir, src), dest_dir)
+
+	### Generate property sheets with specific conditions
+	if arch == 'x86':
+		platform = "('$(Platform)' == 'x86' Or '$(Platform)' == 'Win32')"
+	else:
+		platform = "'$(Platform)' == '{}'".format(arch)
+	condition = "'$(PlatformToolset)' == '{}' And {}".format(toolset, platform)
+	for name in ['v8', 'v8.redist', 'v8.symbols']:
+		props = open('nuget/{}.props'.format(name)).read()
+		props = props.replace('$Condition$', condition)
+		open('nuget/{}-{}-{}.props'.format(name, toolset, arch), 'w+').write(props)
 
 
-# Make redist and symbol packages
-nuget_args = [
-	'-NoPackageAnalysis',
-	'-Version', version,
-	'-Properties', 'Platform='+arch+';PlatformToolset='+toolset,
-	#'-OutputDirectory', 'nuget'
-]
+# Make packages
 for arch in PLATFORMS:
-	print 'NuPkg redist V8', version, toolset, arch
-	for nuspec in ['v8.redist.nuspec', 'v8.symbols.nuspec']:
+	for nuspec in ['v8.nuspec', 'v8.redist.nuspec', 'v8.symbols.nuspec']:
+		print 'NuGet pack {} for V8 {} {} {}'.format(nuspec, version, toolset, arch)
+		nuget_args = [
+			'-NoPackageAnalysis',
+			'-Version', version,
+			'-Properties', 'Platform='+arch+';PlatformToolset='+toolset,
+			#'-OutputDirectory', 'nuget'
+		]
 		subprocess.call([NUGET, 'pack', nuspec] + nuget_args, cwd='nuget')
-
-
-# Make dev package
-print 'NuPkg dev V8', version, toolset
-subprocess.call([NUGET, 'pack', 'v8.nuspec'] + nuget_args, cwd='nuget')
