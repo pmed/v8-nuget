@@ -37,16 +37,6 @@ def git_fetch(url, target):
 	subprocess.call(['git', 'fetch', '--depth=1', url, ref], cwd=target)
 	subprocess.call(['git', 'checkout', '-B', 'Branch_'+ref, 'FETCH_HEAD'], cwd=target)
 
-def v8_version():
-	text = open('v8/include/v8-version.h').read()
-	value = lambda name: re.search('^#define\s+'+name+'\s+(\d+)$', text, re.M).group(1)
-	defines = ['V8_MAJOR_VERSION', 'V8_MINOR_VERSION', 'V8_BUILD_NUMBER', 'V8_PATCH_LEVEL']
-	return string.join(map(value, defines), '.')
-
-def vcx_toolset():
-	text = open('v8/src/v8.vcxproj').read()
-	return re.search('<PlatformToolset>(v\d+)</PlatformToolset>', text).group(1)
-
 def rmtree(dir):
 	if os.path.isdir(dir):
 		shutil.rmtree(dir)
@@ -63,29 +53,43 @@ def copytree(src_dir, dest_dir):
 ## Fetch V8 sources
 git_fetch(V8_URL+'@'+V8_VERSION, 'v8')
 
-## Fetch V8 source dependencies
+## Fetch V8 source dependencies besides tests
 Var = lambda name: vars[name]
 deps = open('v8/DEPS').read()
 exec deps
-for dep in ['v8/base/trace_event/common', 'v8/build', 'v8/testing/gtest', 'v8/tools/gyp', 'v8/tools/clang', 'v8/third_party/icu']:
-	git_fetch(deps[dep], dep)
+for dep in deps:
+	if not dep.startswith('v8/test/'):
+		git_fetch(deps[dep], dep)
 
 ### Get v8 version from defines in v8-version.h
-version = v8_version()
+v8_version_h = open('v8/include/v8-version.h').read()
+version = string.join(map(lambda name: re.search('^#define\s+'+name+'\s+(\d+)$', v8_version_h, re.M).group(1), \
+	['V8_MAJOR_VERSION', 'V8_MINOR_VERSION', 'V8_BUILD_NUMBER', 'V8_PATCH_LEVEL']), '.')
+
 toolset=None
 
 ## Build V8
+if os.path.isfile('v8/src/v8.gyp'):
+	src_dir = 'src'
+	v8_gyp_dir = 'gypfiles'
+else:
+	src_dir = 'tools/gyp'
+	v8_gyp_dir = 'build'
+
 for arch in PLATFORMS:
 	gyp_arch = 'ia32' if arch == 'x86' else arch
-	gyp_args = ['-fmsvs', '-Dtarget_arch='+gyp_arch, '--depth=.',
-		'-I./gypfiles/standalone.gypi', '-I../v8_options.gypi',
-		'src/v8.gyp'
+	gyp_args = ['-fmsvs', '-Dtarget_arch='+gyp_arch,
+		'-I../v8_options.gypi',
+		src_dir + '/v8.gyp'
 	]
-	subprocess.call([sys.executable, 'tools/gyp/gyp_main.py'] + gyp_args, cwd='v8')
+	gyp_env = os.environ.copy()
+	gyp_env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+	subprocess.call([sys.executable, v8_gyp_dir + '/gyp_v8'] + gyp_args, cwd='v8', env=gyp_env)
 
 	### Get Visual C++ toolset from generated project file v8.vcxproj
 	if not toolset:
-		toolset = vcx_toolset()
+		toolset = re.search('<PlatformToolset>(v\d+)</PlatformToolset>', \
+			open(os.path.join('v8', src_dir, 'v8.vcxproj')).read()).group(1)
 
 	### Build configurations for the current platform
 	for conf in CONFIGURATIONS:
@@ -96,7 +100,7 @@ for arch in PLATFORMS:
 		rmtree(dest_dir)
 		msbuild_platform = 'Win32' if arch == 'x86' else arch
 		build_args = ['/m', '/t:Rebuild', '/p:Configuration='+conf, '/p:Platform='+msbuild_platform]
-		subprocess.call(['msbuild', 'src\\v8.sln'] + build_args, cwd='v8')
+		subprocess.call(['msbuild', src_dir +'\\v8.sln'] + build_args, cwd='v8')
 		### Save build result
 		for src in ['lib/v8.*', 'v8.*', 'v8_lib*', 'icu*.*']:
 			copytree(os.path.join(build_dir, src), dest_dir)
