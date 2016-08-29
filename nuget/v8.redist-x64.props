@@ -1,8 +1,0 @@
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup Condition="'$(PlatformToolset)' == '$PlatformToolset$' And '$(Platform)' == 'x64'">
-    <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$PlatformToolset$\x64\$(Configuration)\v8.dll" />
-    <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$PlatformToolset$\x64\$(Configuration)\icui18n.dll" />
-    <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$PlatformToolset$\x64\$(Configuration)\icuuc.dll" />
-    <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$PlatformToolset$\x64\$(Configuration)\icudtl.dat" />
-  </ItemGroup>
-</Project>

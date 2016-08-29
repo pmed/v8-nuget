@@ -13,11 +13,11 @@
     <tags>V8 javascript embedded native nativepackage</tags>
   </metadata>
   <files>
-    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\*.dll" target="lib\$PlatformToolset$\$Platform$\Debug" />
-    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\icudtl.dat" target="lib\$PlatformToolset$\$Platform$\Debug" />
-    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\*.dll" target="lib\$PlatformToolset$\$Platform$\Release" />
-    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\icudtl.dat" target="lib\$PlatformToolset$\$Platform$\Release" />
-    <file src="v8.redist-$PlatformToolset$-$Platform$.props" target="build\native" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\*.dll" target="lib\Debug" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\icudtl.dat" target="lib\Debug" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\*.dll" target="lib\Release" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\icudtl.dat" target="lib\Release" />
+    <file src="v8.redist.props" target="build\native\v8.redist-$PlatformToolset$-$Platform$.props" />
     <file src="..\readme.md" target="" />
   </files>
 </package>

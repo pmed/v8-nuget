@@ -88,11 +88,6 @@ for arch in PLATFORMS:
 		copytree(os.path.join('v8/build', conf, 'v8.*'), dest_dir) # .dll and .pdb
 		copytree(os.path.join('v8/build', conf, 'v8_lib*.lib'), dest_dir)
 		copytree(os.path.join('v8/build', conf, 'icu*.*'), dest_dir) # .dll, .pdb, .dat
-	### Generate v8.targets file for the arch
-	for name in ['v8', 'v8.redist', 'v8.symbols']:
-		targets = open('nuget/{}-{}.props'.format(name, arch)).read()
-		targets = targets.replace('$PlatformToolset$', toolset)
-		open('nuget/{}-{}-{}.props'.format(name, toolset, arch), 'w+').write(targets)
 
 
 # Make redist and symbol packages

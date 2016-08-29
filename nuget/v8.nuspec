@@ -18,11 +18,11 @@
   </metadata>
   <files>
     <file src="..\v8\include\**\*.h" target="include" />
-    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\v8*.exp" target="lib\$PlatformToolset$\$Platform$\Debug" />
-    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\v8*.lib" target="lib\$PlatformToolset$\$Platform$\Debug" />
-    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\v8*.lib" target="lib\$PlatformToolset$\$Platform$\Release" />
-    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\v8*.exp" target="lib\$PlatformToolset$\$Platform$\Release" />
-    <file src="v8-$PlatformToolset$-$Platform$.props" target="build\native" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\v8*.exp" target="lib\Debug" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\v8*.lib" target="lib\Debug" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\v8*.lib" target="lib\Release" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\v8*.exp" target="lib\Release" />
+    <file src="v8.props" target="build\native\v8-$PlatformToolset$-$Platform$.props" />
     <file src="..\readme.md" target="" />
   </files>
 </package>
