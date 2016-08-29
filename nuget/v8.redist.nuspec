@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>v8.redist-$PlatformToolset$-$Platform$</id>
+    <version>$Version$</version>
+    <authors>The V8 JavaScript Engine Authors</authors>
+    <owners>The V8 NuGet package Authors</owners>
+    <projectUrl>https://github.com/pmed/v8-nuget</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/wiki/v8/v8/images/v8logo.png</iconUrl>
+    <licenseUrl>https://raw.githubusercontent.com/v8/v8/master/LICENSE.v8</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Prebuild binaries for V8 JavaScript Engine.</description>
+    <tags>V8 javascript embedded native nativepackage</tags>
+  </metadata>
+  <files>
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\*.dll" target="lib\$PlatformToolset$\$Platform$\Debug" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\icudtl.dat" target="lib\$PlatformToolset$\$Platform$\Debug" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\*.dll" target="lib\$PlatformToolset$\$Platform$\Release" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\icudtl.dat" target="lib\$PlatformToolset$\$Platform$\Release" />
+    <file src="v8.redist-$PlatformToolset$-$Platform$.targets" target="build\native" />
+    <file src="..\readme.md" target="" />
+  </files>
+</package>

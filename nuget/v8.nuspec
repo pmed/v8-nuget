@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>v8-$PlatformToolset$-$Platform$</id>
+    <version>$Version$</version>
+    <authors>The V8 JavaScript Engine Authors</authors>
+    <owners>The V8 NuGet package Authors</owners>
+    <projectUrl>https://github.com/pmed/v8-nuget</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/wiki/v8/v8/images/v8logo.png</iconUrl>
+    <licenseUrl>https://raw.githubusercontent.com/v8/v8/master/LICENSE.v8</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Developer files (headers/libraries) for V8 JavaScript Engine.</description>
+    <tags>V8 javascript embedded native nativepackage</tags>
+    <dependencies>
+      <dependency id="v8.redist-$PlatformToolset$-$Platform$" version="[$Version$]" /> 
+      <dependency id="v8.symbols-$PlatformToolset$-$Platform$" version="[$Version$]" /> 
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\v8\include\**\*.h" target="include" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\v8*.exp" target="lib\$PlatformToolset$\$Platform$\Debug" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\v8*.lib" target="lib\$PlatformToolset$\$Platform$\Debug" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\v8*.lib" target="lib\$PlatformToolset$\$Platform$\Release" />
+    <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\v8*.exp" target="lib\$PlatformToolset$\$Platform$\Release" />
+    <file src="v8-$PlatformToolset$-$Platform$.targets" target="build\native" />
+    <file src="..\readme.md" target="" />
+  </files>
+</package>
