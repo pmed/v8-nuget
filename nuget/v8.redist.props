@@ -3,6 +3,6 @@
     <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$(Configuration)\v8.dll" />
     <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$(Configuration)\icui18n.dll" />
     <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$(Configuration)\icuuc.dll" />
-    <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$(Configuration)\icudtl.dat" />
+    <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$(Configuration)\icudtl*.dat" />
   </ItemGroup>
 </Project>
