@@ -88,7 +88,7 @@ for arch in PLATFORMS:
 		toolset = vcx_toolset()
 
 	### Build configurations for the current platform
-	for conf in []: #CONFIGURATIONS:
+	for conf in CONFIGURATIONS:
 		print 'Build V8 {} {} {}'.format(version, arch, conf)
 		build_dir = os.path.join('v8/build', conf)
 		dest_dir = os.path.join('v8/lib', toolset, arch, conf)
