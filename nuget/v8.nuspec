@@ -22,7 +22,7 @@
     <file src="..\v8\lib\$PlatformToolset$\$Platform$\Debug\v8*.lib" target="lib\$PlatformToolset$\$Platform$\Debug" />
     <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\v8*.lib" target="lib\$PlatformToolset$\$Platform$\Release" />
     <file src="..\v8\lib\$PlatformToolset$\$Platform$\Release\v8*.exp" target="lib\$PlatformToolset$\$Platform$\Release" />
-    <file src="v8-$PlatformToolset$-$Platform$.targets" target="build\native" />
+    <file src="v8-$PlatformToolset$-$Platform$.props" target="build\native" />
     <file src="..\readme.md" target="" />
   </files>
 </package>

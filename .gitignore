@@ -1,7 +1,7 @@
 /v8
 /nuget/v8-*.nupkg
-/nuget/v8-*.targets
+/nuget/v8-*.props
 /nuget/v8.redist-*.nupkg
-/nuget/v8.redist-*.targets
+/nuget/v8.redist-*.props
 /nuget/v8.symbols-*.nupkg
-/nuget/v8.symbols-*.targets
+/nuget/v8.symbols-*.props
