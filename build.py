@@ -21,7 +21,6 @@ elif V8_VERSION.count('.') < 3 and all(x.isdigit() for x in V8_VERSION.split('.'
 PLATFORMS = ['x86', 'x64']
 CONFIGURATIONS = ['Debug', 'Release']
 
-NUGET = os.path.join(os.environ['LOCALAPPDATA'], 'nuget', 'NuGet.exe')
 
 def git_fetch(url, target):
 	parts = url.split('.git@')
@@ -134,4 +133,4 @@ for arch in PLATFORMS:
 			'-Properties', 'Platform='+arch+';PlatformToolset='+toolset,
 			#'-OutputDirectory', 'nuget'
 		]
-		subprocess.call([NUGET, 'pack', nuspec] + nuget_args, cwd='nuget')
+		subprocess.call(['nuget', 'pack', nuspec] + nuget_args, cwd='nuget')
