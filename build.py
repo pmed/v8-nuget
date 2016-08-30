@@ -67,6 +67,8 @@ version = string.join(map(lambda name: re.search('^#define\s+'+name+'\s+(\d+)$',
 	['V8_MAJOR_VERSION', 'V8_MINOR_VERSION', 'V8_BUILD_NUMBER', 'V8_PATCH_LEVEL']), '.')
 
 toolset=None
+vs_versions = { '12.0': '2013', '14.0': '2015' }
+vs_version = vs_versions.get(os.environ.get('VisualStudioVersion'))
 
 ## Build V8
 if os.path.isfile('v8/src/v8.gyp'):
@@ -84,6 +86,11 @@ for arch in PLATFORMS:
 	]
 	gyp_env = os.environ.copy()
 	gyp_env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+	if vs_version:
+		gyp_env['GYP_MSVS_VERSION'] = vs_version
+	else:
+		gyp_env['SKIP_V8_GYP_ENV'] = '1'
+
 	subprocess.call([sys.executable, v8_gyp_dir + '/gyp_v8'] + gyp_args, cwd='v8', env=gyp_env)
 
 	### Get Visual C++ toolset from generated project file v8.vcxproj
