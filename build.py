@@ -9,7 +9,7 @@ import subprocess
 import shutil
 
 V8_URL = 'https://chromium.googlesource.com/v8/v8.git'
-V8_VERSION = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('V8_VERSION')
+V8_VERSION = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('V8_VERSION', '')
 
 # Use only Last Known Good Revision branches
 if V8_VERSION == '':
@@ -35,7 +35,7 @@ def git_fetch(url, target):
 	if not os.path.isdir(os.path.join(target, '.git')):
 		subprocess.call(['git', 'init', target])
 	subprocess.call(['git', 'fetch', '--depth=1', url, ref], cwd=target)
-	subprocess.call(['git', 'checkout', '-B', 'Branch_'+ref, 'FETCH_HEAD'], cwd=target)
+	subprocess.call(['git', 'checkout', '-f', '-B', 'Branch_'+ref, 'FETCH_HEAD'], cwd=target)
 
 def rmtree(dir):
 	if os.path.isdir(dir):
