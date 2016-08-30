@@ -5,7 +5,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(MSBuildThisFileDirectory)..\..\lib\$(Configuration)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>v8.lib;v8_libbase.lib;v8_libplatform.lib;v8_libsampler.lib;dbghelp.lib;shlwapi.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>v8.lib;v8_libbase.lib;v8_libplatform.lib;dbghelp.lib;shlwapi.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
 </Project>
