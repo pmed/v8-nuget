@@ -1,8 +1,7 @@
 # NuGet package for V8 JavaScript Engine
 
-This package contains prebuild V8 binaries, debug symbols and as well long
-includes and libraries required to embed the JavaScript engine into C++ project.
-
+This package contains prebuild V8 binaries, debug symbols, headers and
+libraries required to embed the V8 JavaScript engine into a C++ project.
 
 ## Usage
 
@@ -14,8 +13,7 @@ where
   * `$PlatformToolset` is the C++ toolset version used in Visual Studio:
     * `v120` - for Visual Studio 2013
     * `v140` - for Visual Studio 2015
-    * `vXYZ` - for next Visual Studio version
-
+  
   * `$Platform` is a target platform type, currenlty `x86` or `x64`.
 
   * `$Version` is the actual V8 version, one of https://chromium.googlesource.com/v8/v8.git/+refs
@@ -36,5 +34,7 @@ Tools required to build V8 NuGet package on Windows:
   * Git
   * NuGet (https://dist.nuget.org/index.html)
 
-1. Run `build.py` with optional V8 version argument.
-2. Publish `nuget/*.nupkg` files after successful build.
+To build V8 and make NuGet packages:
+
+  1. Run `build.py` with optional V8 version argument.
+  2. Publish `nuget/*.nupkg` files after successful build.
