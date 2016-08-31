@@ -25,6 +25,9 @@ CONFIGURATION = sys.argv[3] if len(sys.argv) > 3 else os.environ.get('CONFIGURAT
 CONFIGURATIONS = [CONFIGURATION] if CONFIGURATION else ['Debug', 'Release']
 
 
+PACKAGES = ['v8', 'v8.redist', 'v8.symbols']
+
+
 def git_fetch(url, target):
 	parts = url.split('.git@')
 	if len(parts) > 1:
@@ -120,7 +123,7 @@ for arch in PLATFORMS:
 	else:
 		platform = "'$(Platform)' == '{}'".format(arch)
 	condition = "'$(PlatformToolset)' == '{}' And {}".format(toolset, platform)
-	for name in ['v8', 'v8.redist', 'v8.symbols']:
+	for name in PACKAGES:
 		props = open('nuget/{}.props'.format(name)).read()
 		props = props.replace('$Condition$', condition)
 		open('nuget/{}-{}-{}.props'.format(name, toolset, arch), 'w+').write(props)
@@ -128,12 +131,14 @@ for arch in PLATFORMS:
 
 # Make packages
 for arch in PLATFORMS:
-	for nuspec in ['v8.nuspec', 'v8.redist.nuspec', 'v8.symbols.nuspec']:
+	for name in PACKAGES:
+		nuspec = name + '.nuspec'
 		print 'NuGet pack {} for V8 {} {} {}'.format(nuspec, version, toolset, arch)
 		nuget_args = [
 			'-NoPackageAnalysis',
 			'-Version', version,
 			'-Properties', 'Platform='+arch+';PlatformToolset='+toolset,
-			#'-OutputDirectory', 'nuget'
+			'-OutputDirectory', '..'
 		]
 		subprocess.call(['nuget', 'pack', nuspec] + nuget_args, cwd='nuget')
+		os.remove('nuget/{}-{}-{}.props'.format(name, toolset, arch))
