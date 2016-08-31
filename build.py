@@ -18,8 +18,11 @@ elif V8_VERSION.count('.') < 3 and all(x.isdigit() for x in V8_VERSION.split('.'
 	V8_VERSION += '-lkgr' 
 
 
-PLATFORMS = ['x86', 'x64']
-CONFIGURATIONS = ['Debug', 'Release']
+PLATFORM = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('PLATFORM', '')
+PLATFORMS = [PLATFORM] if PLATFORM else ['x86', 'x64']
+
+CONFIGURATION = sys.argv[3] if len(sys.argv) > 3 else os.environ.get('CONFIGURATION', '')
+CONFIGURATIONS = [CONFIGURATION] if CONFIGURATION else ['Debug', 'Release']
 
 
 def git_fetch(url, target):
