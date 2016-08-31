@@ -1,3 +1,2 @@
 /v8
-/nuget/v8*.nupkg
-/nuget/v8*.props
+/v8*.nupkg
