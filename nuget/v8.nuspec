@@ -13,7 +13,6 @@
     <tags>V8 javascript embedded native nativepackage</tags>
     <dependencies>
       <dependency id="v8.redist-$PlatformToolset$-$Platform$" version="[$Version$]" /> 
-      <dependency id="v8.symbols-$PlatformToolset$-$Platform$" version="[$Version$]" /> 
     </dependencies>
   </metadata>
   <files>
