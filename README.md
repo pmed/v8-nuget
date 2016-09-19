@@ -22,7 +22,7 @@ where
     * `v120` - for Visual Studio 2013
     * `v140` - for Visual Studio 2015
   
-  * `$Platform` is a target platform type, currenlty `x86` or `x64`.
+  * `$Platform` is a target platform type, currently `x86` or `x64`.
 
   * `$Version` is the actual V8 version, one of https://chromium.googlesource.com/v8/v8.git/+refs
 
