@@ -121,7 +121,7 @@ for arch in PLATFORMS:
 			'/p:Platform='+msbuild_platform, '/p:PlatformToolset='+toolset]
 		subprocess.call(['msbuild', src_dir +'\\v8.sln'] + build_args, cwd='v8')
 		### Save build result
-		for src in ['lib/v8.*', 'v8.*', 'v8_lib*', 'icu*.*']:
+		for src in ['lib/v8*', 'lib/icu*','v8.*', 'v8_lib*', 'icu*']:
 			copytree(os.path.join(build_dir, src), dest_dir)
 
 	### Generate property sheets with specific conditions
