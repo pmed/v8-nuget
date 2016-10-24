@@ -7,6 +7,7 @@ import string
 import sys
 import subprocess
 import shutil
+import patch
 
 V8_URL = 'https://chromium.googlesource.com/v8/v8.git'
 V8_VERSION = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('V8_VERSION', '')
@@ -24,6 +25,7 @@ PLATFORMS = [PLATFORM] if PLATFORM else ['x86', 'x64']
 CONFIGURATION = sys.argv[3] if len(sys.argv) > 3 else os.environ.get('CONFIGURATION', '')
 CONFIGURATIONS = [CONFIGURATION] if CONFIGURATION else ['Debug', 'Release']
 
+XP_TOOLSET = sys.argv[4] if len(sys.argv) > 4 else os.environ.get('XP')
 
 PACKAGES = ['v8', 'v8.redist', 'v8.symbols']
 
@@ -66,6 +68,9 @@ for dep in deps:
 	if not dep.startswith('v8/test/'):
 		git_fetch(deps[dep], dep)
 
+## Patch V8 sources for XP platfrom target
+patch.fromfile('runtime-atomics.cc.patch').apply(root='v8', strip=1)
+
 ### Get v8 version from defines in v8-version.h
 v8_version_h = open('v8/include/v8-version.h').read()
 version = string.join(map(lambda name: re.search('^#define\s+'+name+'\s+(\d+)$', v8_version_h, re.M).group(1), \
@@ -102,6 +107,7 @@ for arch in PLATFORMS:
 	if not toolset:
 		toolset = re.search('<PlatformToolset>(v\d+)</PlatformToolset>', \
 			open(os.path.join('v8', src_dir, 'v8.vcxproj')).read()).group(1)
+		if XP_TOOLSET: toolset += '_xp'
 
 	### Build configurations for the current platform
 	for conf in CONFIGURATIONS:
@@ -111,7 +117,8 @@ for arch in PLATFORMS:
 		rmtree(build_dir)
 		rmtree(dest_dir)
 		msbuild_platform = 'Win32' if arch == 'x86' else arch
-		build_args = ['/m', '/t:Rebuild', '/p:Configuration='+conf, '/p:Platform='+msbuild_platform]
+		build_args = ['/m', '/t:Rebuild', '/p:Configuration='+conf,
+			'/p:Platform='+msbuild_platform, '/p:PlatformToolset='+toolset]
 		subprocess.call(['msbuild', src_dir +'\\v8.sln'] + build_args, cwd='v8')
 		### Save build result
 		for src in ['lib/v8.*', 'v8.*', 'v8_lib*', 'icu*.*']:
