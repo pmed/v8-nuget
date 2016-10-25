@@ -5,10 +5,14 @@ libraries required to embed the V8 JavaScript engine into a C++ project.
 
 | Package                     | Version
 |-----------------------------|----------------------------------------------------------------------------------------------------------------------|
-|V8 x86 for Visual Studio 2013|[![NuGet](https://img.shields.io/nuget/v/v8-v120-x86.svg?maxAge=2592000)](https://www.nuget.org/packages/v8-v120-x86/)|
-|V8 x86 for Visual Studio 2015|[![NuGet](https://img.shields.io/nuget/v/v8-v140-x86.svg?maxAge=2592000)](https://www.nuget.org/packages/v8-v140-x86/)|
-|V8 x64 for Visual Studio 2013|[![NuGet](https://img.shields.io/nuget/v/v8-v120-x64.svg?maxAge=2592000)](https://www.nuget.org/packages/v8-v120-x64/)|
-|V8 x64 for Visual Studio 2015|[![NuGet](https://img.shields.io/nuget/v/v8-v140-x64.svg?maxAge=2592000)](https://www.nuget.org/packages/v8-v140-x64/)|
+|V8 x86 for Visual Studio 2013|[![NuGet](https://img.shields.io/nuget/v/v8-v120-x86.svg)](https://www.nuget.org/packages/v8-v120-x86/)|
+|V8 x86 for Visual Studio 2015|[![NuGet](https://img.shields.io/nuget/v/v8-v140-x86.svg)](https://www.nuget.org/packages/v8-v140-x86/)|
+|V8 x64 for Visual Studio 2013|[![NuGet](https://img.shields.io/nuget/v/v8-v120-x64.svg)](https://www.nuget.org/packages/v8-v120-x64/)|
+|V8 x64 for Visual Studio 2015|[![NuGet](https://img.shields.io/nuget/v/v8-v140-x64.svg)](https://www.nuget.org/packages/v8-v140-x64/)|
+|V8 x86 for Visual Studio 2013 XP platform toolset|[![NuGet](https://img.shields.io/nuget/v/v8-v120_xp-x86.svg)](https://www.nuget.org/packages/v8-v120_xp-x86/)|
+|V8 x86 for Visual Studio 2015 XP platform toolset|[![NuGet](https://img.shields.io/nuget/v/v8-v140_xp-x86.svg)](https://www.nuget.org/packages/v8-v140_xp-x86/)|
+|V8 x64 for Visual Studio 2013 XP platform toolset|[![NuGet](https://img.shields.io/nuget/v/v8-v120_xp-x64.svg)](https://www.nuget.org/packages/v8-v120_xp-x64/)|
+|V8 x64 for Visual Studio 2015 XP platform toolset|[![NuGet](https://img.shields.io/nuget/v/v8-v140_xp-x64.svg)](https://www.nuget.org/packages/v8-v140_xp-x64/)|
 
 
 ## Usage
@@ -21,6 +25,8 @@ where
   * `$PlatformToolset` is the C++ toolset version used in Visual Studio:
     * `v120` - for Visual Studio 2013
     * `v140` - for Visual Studio 2015
+    * `v120_xp` - for Visual Studio 2013 XP platform toolset
+    * `v140_xp` - for Visual Studio 2015 XP platform toolset
   
   * `$Platform` is a target platform type, currently `x86` or `x64`.
 
@@ -44,5 +50,12 @@ Tools required to build V8 NuGet package on Windows:
 
 To build V8 and make NuGet packages:
 
-  1. Run `build.py` with optional V8 version argument.
+  1. Run `build.py` with optional command-line arguments.
   2. Publish `nuget/*.nupkg` files after successful build.
+  
+Build script `build.py` supports command-line arguments to specify package build options:
+
+  1. V8 version branch/tag name (or `V8_VERSION` environment variable), default is `lkgr` branch
+  2. Target platform (or `PLATFORM` evnironment variable), default is [`x86`, `x64`]
+  3. Configuration (or `CONFIGURATION` environment variable), default is [`Debug`, `Release`]
+  4. XP platofrm toolset usage flag (or `XP` environment variable), default is not set
