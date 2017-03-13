@@ -37,12 +37,17 @@ def git_fetch(url, target):
 		ref = parts[1]
 	else:
 		ref = 'HEAD'
-	print 'Fetch {} into {}'.format(url, target)
+	print 'Fetch {}@{} into {}'.format(url, ref, target)
 
 	if not os.path.isdir(os.path.join(target, '.git')):
-		subprocess.call(['git', 'init', target])
-	subprocess.call(['git', 'fetch', '--depth=1', url, ref], cwd=target)
-	subprocess.call(['git', 'checkout', '-f', '-B', 'Branch_'+ref, 'FETCH_HEAD'], cwd=target)
+		subprocess.check_call(['git', 'init', target])
+	fetch_args = ['git', 'fetch', '--depth=1', '--update-shallow', '--update-head-ok', '--quiet', url, ref]
+	if subprocess.call(fetch_args, cwd=target) != 0:
+		print 'RETRY:', target
+		shutil.rmtree(target, ignore_errors=True)
+		subprocess.check_call(['git', 'init', target])
+		subprocess.check_call(fetch_args, cwd=target)
+	subprocess.check_call(['git', 'checkout', '-f', '-B', 'Branch_'+ref, 'FETCH_HEAD'], cwd=target)
 
 def rmtree(dir):
 	if os.path.isdir(dir):
@@ -101,7 +106,7 @@ for arch in PLATFORMS:
 	else:
 		gyp_env['SKIP_V8_GYP_ENV'] = '1'
 
-	subprocess.call([sys.executable, v8_gyp_dir + '/gyp_v8'] + gyp_args, cwd='v8', env=gyp_env)
+	subprocess.check_call([sys.executable, v8_gyp_dir + '/gyp_v8'] + gyp_args, cwd='v8', env=gyp_env)
 
 	### Get Visual C++ toolset from generated project file v8.vcxproj
 	if not toolset:
@@ -118,8 +123,9 @@ for arch in PLATFORMS:
 		rmtree(dest_dir)
 		msbuild_platform = 'Win32' if arch == 'x86' else arch
 		build_args = ['/m', '/t:Rebuild', '/p:Configuration='+conf,
+			'/p:ContinueOnError=false', '/p:StopOnFirstFailure=true',
 			'/p:Platform='+msbuild_platform, '/p:PlatformToolset='+toolset]
-		subprocess.call(['msbuild', src_dir +'\\v8.sln'] + build_args, cwd='v8')
+		subprocess.check_call(['msbuild', src_dir +'\\v8.sln'] + build_args, cwd='v8')
 		### Save build result
 		for src in ['lib/v8*', 'lib/icu*','v8.*', 'v8_lib*', 'icu*']:
 			copytree(os.path.join(build_dir, src), dest_dir)
@@ -147,5 +153,5 @@ for arch in PLATFORMS:
 			'-Properties', 'Platform='+arch+';PlatformToolset='+toolset,
 			'-OutputDirectory', '..'
 		]
-		subprocess.call(['nuget', 'pack', nuspec] + nuget_args, cwd='nuget')
+		subprocess.check_call(['nuget', 'pack', nuspec] + nuget_args, cwd='nuget')
 		os.remove('nuget/{}-{}-{}.props'.format(name, toolset, arch))

@@ -1,8 +1,8 @@
 diff --git a/src/runtime/runtime-atomics.cc b/src/runtime/runtime-atomics.cc
-index 3bd0738..9c70447 100644
+index 3bd0738..38cd781 100644
 --- a/src/runtime/runtime-atomics.cc
 +++ b/src/runtime/runtime-atomics.cc
-@@ -4,6 +4,28 @@
+@@ -4,6 +4,29 @@
  
  #include "src/runtime/runtime-utils.h"
  
@@ -13,6 +13,7 @@ index 3bd0738..9c70447 100644
 +#define InterlockedOr8                 _InterlockedOr8
 +#define InterlockedXor8                _InterlockedXor8
 +
++#define InterlockedExchange8           _InterlockedExchange8
 +#define InterlockedExchange16          _InterlockedExchange16
 +#define InterlockedXor16               _InterlockedXor16
 +
