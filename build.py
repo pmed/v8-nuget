@@ -76,14 +76,18 @@ for dep in deps:
 ## Patch V8 sources for XP platfrom target
 patch.fromfile('runtime-atomics.cc.patch').apply(root='v8', strip=1)
 
+## Patch GYP to Support Visual Studio 2017
+patch.fromfile('gyp-vs2017.patch').apply(root='v8')
+
 ### Get v8 version from defines in v8-version.h
 v8_version_h = open('v8/include/v8-version.h').read()
 version = string.join(map(lambda name: re.search('^#define\s+'+name+'\s+(\d+)$', v8_version_h, re.M).group(1), \
 	['V8_MAJOR_VERSION', 'V8_MINOR_VERSION', 'V8_BUILD_NUMBER', 'V8_PATCH_LEVEL']), '.')
 
 toolset=None
-vs_versions = { '12.0': '2013', '14.0': '2015' }
+vs_versions = { '12.0': '2013', '14.0': '2015', '15.0': '2017' }
 vs_version = vs_versions.get(os.environ.get('VisualStudioVersion'))
+vc_install_dir = os.environ.get('VCINSTALLDIR')
 
 ## Build V8
 if os.path.isfile('v8/src/v8.gyp'):
@@ -101,8 +105,9 @@ for arch in PLATFORMS:
 	]
 	gyp_env = os.environ.copy()
 	gyp_env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-	if vs_version:
+	if vs_version and vc_install_dir:
 		gyp_env['GYP_MSVS_VERSION'] = vs_version
+		gyp_env['GYP_MSVS_OVERRIDE_PATH'] = vc_install_dir
 	else:
 		gyp_env['SKIP_V8_GYP_ENV'] = '1'
 
