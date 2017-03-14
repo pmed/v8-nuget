@@ -9,6 +9,14 @@ import subprocess
 import shutil
 import patch
 
+vs_versions = { '12.0': '2013', '14.0': '2015', '15.0': '2017' }
+vs_version = vs_versions.get(os.environ.get('VisualStudioVersion'))
+vc_install_dir = os.environ.get('VCINSTALLDIR')
+print vs_version
+print vc_install_dir
+print os.environ
+sys.exit(-1)
+
 V8_URL = 'https://chromium.googlesource.com/v8/v8.git'
 V8_VERSION = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('V8_VERSION', '')
 
