@@ -88,6 +88,8 @@ toolset=None
 vs_versions = { '12.0': '2013', '14.0': '2015', '15.0': '2017' }
 vs_version = vs_versions.get(os.environ.get('VisualStudioVersion'))
 vc_install_dir = os.environ.get('VCINSTALLDIR')
+print 'VS version', vs_version
+print 'VCINSTALLDIR', vc_install_dir
 
 ## Build V8
 if os.path.isfile('v8/src/v8.gyp'):
@@ -122,9 +124,11 @@ for arch in PLATFORMS:
 	### Build configurations for the current platform
 	for conf in CONFIGURATIONS:
 		print 'Build V8 {} {} {}'.format(version, arch, conf)
-		build_dir = os.path.join('v8/build', conf)
+		build_dir = os.path.join('v8', 'build', conf)
+		if not os.path.exists(build_dir):
+			build_dir = os.path.join('v8', src_dir, conf)
 		dest_dir = os.path.join('v8/lib', toolset, arch, conf)
-		rmtree(build_dir)
+		#rmtree(build_dir)
 		rmtree(dest_dir)
 		msbuild_platform = 'Win32' if arch == 'x86' else arch
 		build_args = ['/m', '/t:Rebuild', '/p:Configuration='+conf,
@@ -133,6 +137,7 @@ for arch in PLATFORMS:
 		subprocess.check_call(['msbuild', src_dir +'\\v8.sln'] + build_args, cwd='v8')
 		### Save build result
 		for src in ['lib/v8*', 'lib/icu*','v8.*', 'v8_lib*', 'icu*']:
+			print 'copytree', os.path.join(build_dir, src), dest_dir
 			copytree(os.path.join(build_dir, src), dest_dir)
 
 	### Generate property sheets with specific conditions
