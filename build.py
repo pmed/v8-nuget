@@ -25,10 +25,13 @@ PLATFORMS = [PLATFORM] if PLATFORM else ['x86', 'x64']
 CONFIGURATION = sys.argv[3] if len(sys.argv) > 3 else os.environ.get('CONFIGURATION', '')
 CONFIGURATIONS = [CONFIGURATION] if CONFIGURATION else ['Debug', 'Release']
 
-XP_TOOLSET = sys.argv[4] if len(sys.argv) > 4 else os.environ.get('XP')
+XP_TOOLSET = (sys.argv[4] if len(sys.argv) > 4 else os.environ.get('XP')) == '1'
 
 PACKAGES = ['v8', 'v8.redist', 'v8.symbols']
 
+BIN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin')
+GN = os.path.join(BIN_DIR, 'gn.exe')
+NINJA = os.path.join(BIN_DIR, 'ninja.exe')
 
 def git_fetch(url, target):
 	parts = url.split('.git@')
@@ -84,77 +87,60 @@ v8_version_h = open('v8/include/v8-version.h').read()
 version = string.join(map(lambda name: re.search('^#define\s+'+name+'\s+(\d+)$', v8_version_h, re.M).group(1), \
 	['V8_MAJOR_VERSION', 'V8_MINOR_VERSION', 'V8_BUILD_NUMBER', 'V8_PATCH_LEVEL']), '.')
 
-toolset=None
-vs_versions = { '12.0': '2013', '14.0': '2015', '15.0': '2017' }
-vs_version = vs_versions.get(os.environ.get('VisualStudioVersion'))
-vc_install_dir = os.environ.get('VCINSTALLDIR')
-print 'VS version', vs_version
-print 'VCINSTALLDIR', vc_install_dir
+vs_versions = {
+	'12.0': { 'version': '2013', 'toolset': 'v120' },
+	'14.0': { 'version': '2015', 'toolset': 'v140' },
+	'15.0': { 'version': '2017', 'toolset': 'v141' },
+}
+vs_version = vs_versions[os.environ['VisualStudioVersion']]
+toolset = vs_version['toolset']
+vs_version = vs_version['version']
+vs_install_dir = os.path.abspath(os.path.join(os.environ['VCINSTALLDIR'], os.pardir))
+
+env = os.environ.copy()
+env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+env['GYP_MSVS_VERSION'] = vs_version
+env['GYP_MSVS_OVERRIDE_PATH'] = vs_install_dir
+
+if XP_TOOLSET:
+	env['INCLUDE'] = '%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Include;' + env.get('INCLUDE', '')
+	env['PATH'] = '%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Bin;' + env.get('PATH', '')
+	env['LIB'] = '%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Lib;' + env.get('LIB', '')
+	env['CL'] = '/D_USING_' + toolset.upper() + '_SDK71_;' + env.get('CL', '')
+	toolset += '_xp'
+
+print 'V8 version', version
+print 'Visual Studio', vs_version, 'in', vs_install_dir
+print 'C++ Toolset', toolset
+
+# Copy GN to the V8 buildtools in order to work v8gen script
+shutil.copy(GN, 'v8/buildtools/win')
 
 ## Build V8
-if os.path.isfile('v8/src/v8.gyp'):
-	src_dir = 'src'
-	v8_gyp_dir = 'gypfiles'
-else:
-	src_dir = 'tools/gyp'
-	v8_gyp_dir = 'build'
-
 for arch in PLATFORMS:
-	gyp_arch = 'ia32' if arch == 'x86' else arch
-	gyp_args = ['-fmsvs', '-Dtarget_arch='+gyp_arch,
-		'-I../v8_options.gypi',
-		src_dir + '/v8.gyp'
-	]
-	gyp_env = os.environ.copy()
-	gyp_env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-	if vs_version and vc_install_dir:
-		gyp_env['GYP_MSVS_VERSION'] = vs_version
-		gyp_env['GYP_MSVS_OVERRIDE_PATH'] = vc_install_dir
-	else:
-		gyp_env['SKIP_V8_GYP_ENV'] = '1'
-
-	subprocess.check_call([sys.executable, v8_gyp_dir + '/gyp_v8'] + gyp_args, cwd='v8', env=gyp_env)
-
-	### Get Visual C++ toolset from generated project file v8.vcxproj
-	if not toolset:
-		toolset = re.search('<PlatformToolset>(v\d+)</PlatformToolset>', \
-			open(os.path.join('v8', src_dir, 'v8.vcxproj')).read()).group(1)
-		if XP_TOOLSET: toolset += '_xp'
-
-	### Build configurations for the current platform
 	for conf in CONFIGURATIONS:
-		print 'Build V8 {} {} {}'.format(version, arch, conf)
-		build_dir = os.path.join('v8', 'build', conf)
-		if not os.path.exists(build_dir):
-			build_dir = os.path.join('v8', src_dir, conf)
-		dest_dir = os.path.join('v8/lib', toolset, arch, conf)
-		#rmtree(build_dir)
-		rmtree(dest_dir)
-		msbuild_platform = 'Win32' if arch == 'x86' else arch
-		build_args = ['/m', '/t:Rebuild', '/p:Configuration='+conf,
-			'/p:ContinueOnError=false', '/p:StopOnFirstFailure=true',
-			'/p:Platform='+msbuild_platform, '/p:PlatformToolset='+toolset]
-		subprocess.check_call(['msbuild', src_dir +'\\v8.sln'] + build_args, cwd='v8')
-		### Save build result
-		for src in ['lib/v8*', 'lib/icu*','v8.*', 'v8_lib*', 'icu*']:
-			print 'copytree', os.path.join(build_dir, src), dest_dir
-			copytree(os.path.join(build_dir, src), dest_dir)
+		### Generate build.ninja files in out.gn/toolset/arch/conf directory
+		out_dir = os.path.join(toolset, arch, conf)
+		builder = ('ia32' if arch == 'x86' else arch) + '.' + conf.lower()
+		subprocess.check_call([sys.executable, 'tools/dev/v8gen.py',
+			'-b', builder, out_dir, '--', 'is_component_build=true', 'treat_warnings_as_errors=false'], cwd='v8', env=env)
+		### Build V8 with ninja from the generated files
+		out_dir = os.path.join('out.gn', out_dir)
+		subprocess.check_call([NINJA, '-C', out_dir, 'v8'], cwd='v8', env=env)
 
-	### Generate property sheets with specific conditions
 	if arch == 'x86':
 		platform = "('$(Platform)' == 'x86' Or '$(Platform)' == 'Win32')"
 	else:
 		platform = "'$(Platform)' == '{}'".format(arch)
 	condition = "'$(PlatformToolset)' == '{}' And {}".format(toolset, platform)
+
+	## Build NuGet packages
 	for name in PACKAGES:
+		## Generate property sheets with specific conditions
 		props = open('nuget/{}.props'.format(name)).read()
 		props = props.replace('$Condition$', condition)
 		open('nuget/{}-{}-{}.props'.format(name, toolset, arch), 'w+').write(props)
 
-
-# Make packages
-for arch in PLATFORMS:
-	for name in PACKAGES:
 		nuspec = name + '.nuspec'
 		print 'NuGet pack {} for V8 {} {} {}'.format(nuspec, version, toolset, arch)
 		nuget_args = [
