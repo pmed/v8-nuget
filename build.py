@@ -92,12 +92,13 @@ vs_versions = {
 	'14.0': { 'version': '2015', 'toolset': 'v140' },
 	'15.0': { 'version': '2017', 'toolset': 'v141' },
 }
-vs_version = vs_versions[os.environ['VisualStudioVersion']]
+vs_version = vs_versions[os.environ.get('VisualStudioVersion', '14.0')]
 toolset = vs_version['toolset']
 vs_version = vs_version['version']
 vs_install_dir = os.path.abspath(os.path.join(os.environ['VCINSTALLDIR'], os.pardir))
 
 env = os.environ.copy()
+env['SKIP_V8_GYP_ENV'] = '1'
 env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
 env['GYP_MSVS_VERSION'] = vs_version
 env['GYP_MSVS_OVERRIDE_PATH'] = vs_install_dir
