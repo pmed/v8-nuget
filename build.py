@@ -34,6 +34,10 @@ GN = os.path.join(BIN_DIR, 'gn.exe')
 NINJA = os.path.join(BIN_DIR, 'ninja.exe')
 
 def git_fetch(url, target):
+	if isinstance(url, dict):
+		#url = url['url']
+		#if url['condition'] == 'checkut_android':
+		return
 	parts = url.split('.git@')
 	if len(parts) > 1:
 		url = parts[0] + '.git'
@@ -124,7 +128,7 @@ for arch in PLATFORMS:
 		out_dir = os.path.join(toolset, arch, conf)
 		builder = ('ia32' if arch == 'x86' else arch) + '.' + conf.lower()
 		subprocess.check_call([sys.executable, 'tools/dev/v8gen.py',
-			'-b', builder, out_dir, '--', 'is_component_build=true', 'treat_warnings_as_errors=false'], cwd='v8', env=env)
+			'-b', builder, out_dir, '-vv', '--', 'is_clang=false', 'is_component_build=true', 'treat_warnings_as_errors=false'], cwd='v8', env=env)
 		### Build V8 with ninja from the generated files
 		out_dir = os.path.join('out.gn', out_dir)
 		subprocess.check_call([NINJA, '-C', out_dir, 'v8'], cwd='v8', env=env)
