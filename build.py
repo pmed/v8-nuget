@@ -7,7 +7,6 @@ import string
 import sys
 import subprocess
 import shutil
-import patch
 
 V8_URL = 'https://chromium.googlesource.com/v8/v8.git'
 V8_VERSION = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('V8_VERSION', '')
@@ -15,7 +14,7 @@ V8_VERSION = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('V8_VERSION', 
 # Use only Last Known Good Revision branches
 if V8_VERSION == '':
 	V8_VERSION = 'lkgr' 
-elif V8_VERSION.count('.') < 3 and all(x.isdigit() for x in V8_VERSION.split('.')):
+elif V8_VERSION.count('.') < 2 and all(x.isdigit() for x in V8_VERSION.split('.')):
 	V8_VERSION += '-lkgr' 
 
 
@@ -79,12 +78,6 @@ exec deps
 for dep in deps:
 	if not dep.startswith('v8/test/'):
 		git_fetch(deps[dep], dep)
-
-## Patch V8 sources for XP platfrom target
-patch.fromfile('runtime-atomics.cc.patch').apply(root='v8', strip=1)
-
-## Patch GYP to Support Visual Studio 2017
-patch.fromfile('gyp-vs2017.patch').apply(root='v8')
 
 ### Get v8 version from defines in v8-version.h
 v8_version_h = open('v8/include/v8-version.h').read()
