@@ -111,8 +111,10 @@ if toolset == 'v141':
 	is_clang = 'false'
 else:
 	subprocess.check_call([sys.executable, 'tools/clang/scripts/update.py'], cwd='v8', env=env)
+	# v8/build/vs_toolchain.py _CopyPGORuntime() supports only default version Visual Studio 2017
+	del env['GYP_MSVS_VERSION']
+	del env['GYP_MSVS_OVERRIDE_PATH']
 	is_clang = 'true'
-	toolset += '_clang'
 
 
 print 'V8 version', version
