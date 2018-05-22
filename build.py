@@ -81,7 +81,7 @@ for dep in deps:
 
 ### Get v8 version from defines in v8-version.h
 v8_version_h = open('v8/include/v8-version.h').read()
-version = string.join(map(lambda name: re.search('^#define\s+'+name+'\s+(\d+)$', v8_version_h, re.M).group(1), \
+version = string.join(map(lambda name: re.search(r'^#define\s+'+name+r'\s+(\d+)$', v8_version_h, re.M).group(1), \
 	['V8_MAJOR_VERSION', 'V8_MINOR_VERSION', 'V8_BUILD_NUMBER', 'V8_PATCH_LEVEL']), '.')
 
 vs_versions = {
@@ -101,11 +101,19 @@ env['GYP_MSVS_VERSION'] = vs_version
 env['GYP_MSVS_OVERRIDE_PATH'] = vs_install_dir
 
 if XP_TOOLSET:
-	env['INCLUDE'] = '%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Include;' + env.get('INCLUDE', '')
-	env['PATH'] = '%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Bin;' + env.get('PATH', '')
-	env['LIB'] = '%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Lib;' + env.get('LIB', '')
+	env['INCLUDE'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Include;' + env.get('INCLUDE', '')
+	env['PATH'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Bin;' + env.get('PATH', '')
+	env['LIB'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Lib;' + env.get('LIB', '')
 	env['CL'] = '/D_USING_' + toolset.upper() + '_SDK71_;' + env.get('CL', '')
 	toolset += '_xp'
+
+if toolset == 'v141':
+	is_clang = 'false'
+else:
+	subprocess.check_call([sys.executable, 'tools/clang/scripts/update.py'], cwd='v8', env=env)
+	is_clang = 'true'
+	toolset += '_clang'
+
 
 print 'V8 version', version
 print 'Visual Studio', vs_version, 'in', vs_install_dir
@@ -116,12 +124,16 @@ shutil.copy(GN, 'v8/buildtools/win')
 
 ## Build V8
 for arch in PLATFORMS:
+#	if 'CLANG_TOOLSET' in env:
+#		prefix = 'amd64' if arch == 'x64' else arch
+#		env['PATH'] = os.path.join(vs_install_dir, r'VC\ClangC2\bin', prefix, prefix) + ';' + env.get('PATH', '')
+
 	for conf in CONFIGURATIONS:
 		### Generate build.ninja files in out.gn/toolset/arch/conf directory
 		out_dir = os.path.join(toolset, arch, conf)
 		builder = ('ia32' if arch == 'x86' else arch) + '.' + conf.lower()
 		subprocess.check_call([sys.executable, 'tools/dev/v8gen.py',
-			'-b', builder, out_dir, '-vv', '--', 'is_clang=false', 'is_component_build=true', 'treat_warnings_as_errors=false'], cwd='v8', env=env)
+			'-b', builder, out_dir, '-vv', '--', 'is_clang='+is_clang, 'is_component_build=true', 'treat_warnings_as_errors=false'], cwd='v8', env=env)
 		### Build V8 with ninja from the generated files
 		out_dir = os.path.join('out.gn', out_dir)
 		subprocess.check_call([NINJA, '-C', out_dir, 'v8'], cwd='v8', env=env)
