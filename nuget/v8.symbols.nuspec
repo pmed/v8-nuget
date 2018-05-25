@@ -17,7 +17,7 @@
   </metadata>
   <files>
     <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Debug\v8*.pdb" target="lib\Debug" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\v8*.pdb" target="lib\Release" />
+    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\v8*.pdb" target="lib\Retail" />
     <file src="v8.symbols-$PlatformToolset$-$Platform$.props" target="build\native" />
     <file src="..\readme.md" target="" />
   </files>
