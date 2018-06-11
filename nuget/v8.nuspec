@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>v8.Fast-$PlatformToolset$-$Platform$</id>
+    <id>v8.TrustedCodeOpt.$PlatformToolset$-$Platform$</id>
     <version>$Version$</version>
     <authors>The V8 JavaScript Engine Authors</authors>
     <owners>The V8 NuGet package Authors</owners>
@@ -12,7 +12,7 @@
     <description>Developer files (headers/libraries) for V8 JavaScript Engine.</description>
     <tags>V8 javascript embedded native nativepackage</tags>
     <dependencies>
-      <dependency id="v8.redist-$PlatformToolset$-$Platform$" version="[$Version$]" /> 
+      <dependency id="v8.TrustedCodeOpt.redist.$PlatformToolset$-$Platform$" version="[$Version$]" /> 
     </dependencies>
   </metadata>
   <files>
