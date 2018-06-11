@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>v8.redist-$PlatformToolset$-$Platform$</id>
+    <id>v8.TrustedCodeOpt.redist.$PlatformToolset$-$Platform$</id>
     <version>$Version$</version>
     <authors>The V8 JavaScript Engine Authors</authors>
     <owners>The V8 NuGet package Authors</owners>
@@ -16,11 +16,11 @@
     <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Debug\v8*.dll" target="lib\Debug" />
     <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Debug\icu*.dll" target="lib\Debug" />
     <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Debug\icu*.dat" target="lib\Debug" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Debug\*_blob.bin" target="lib\Debug" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\v8*.dll" target="lib\Release" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\icu*.dll" target="lib\Release" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\icu*.dat" target="lib\Release" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\*_blob.bin" target="lib\Release" />
+    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Debug\*_blob*.bin" target="lib\Debug" />
+    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\v8*.dll" target="lib\Retail" />
+    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\icu*.dll" target="lib\Retail" />
+    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\icu*.dat" target="lib\Retail" />
+    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\*_blob*.bin" target="lib\Retail" />
     <file src="v8.redist-$PlatformToolset$-$Platform$.props" target="build\native" />
     <file src="..\readme.md" target="" />
   </files>

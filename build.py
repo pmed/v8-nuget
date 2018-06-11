@@ -100,6 +100,14 @@ env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
 env['GYP_MSVS_VERSION'] = vs_version
 env['GYP_MSVS_OVERRIDE_PATH'] = vs_install_dir
 
+print '------------------------------------------------------'
+print 'Environment Variables Set:'
+print '  set SKIP_V8_GYP_ENV=', env['SKIP_V8_GYP_ENV']
+print '  set DEPOT_TOOLS_WIN_TOOLCHAIN=', env['DEPOT_TOOLS_WIN_TOOLCHAIN']
+print '  set GYP_MSVS_VERSION=', env['GYP_MSVS_VERSION']
+print '  set GYP_MSVS_OVERRIDE_PATH=', env['GYP_MSVS_OVERRIDE_PATH']
+print '------------------------------------------------------'
+
 if XP_TOOLSET:
 	env['INCLUDE'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Include;' + env.get('INCLUDE', '')
 	env['PATH'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Bin;' + env.get('PATH', '')
@@ -134,8 +142,12 @@ for arch in PLATFORMS:
 		### Generate build.ninja files in out.gn/toolset/arch/conf directory
 		out_dir = os.path.join(toolset, arch, conf)
 		builder = ('ia32' if arch == 'x86' else arch) + '.' + conf.lower()
+		cmd = 'tools/dev/v8gen.py -b ' + builder + ' ' + out_dir +  ' -vv -- is_clang=' + is_clang + ' is_component_build=true treat_warnings_as_errors=false'
+
+		print 'CMD: ', cmd, 'cwd: v8'
+		
 		subprocess.check_call([sys.executable, 'tools/dev/v8gen.py',
-			'-b', builder, out_dir, '-vv', '--', 'is_clang='+is_clang, 'is_component_build=true', 'treat_warnings_as_errors=false'], cwd='v8', env=env)
+			'-b', builder, out_dir, '-vv', '--', 'is_clang='+is_clang, 'is_component_build=true', 'treat_warnings_as_errors=false', 'v8_untrusted_code_mitigations=false'], cwd='v8', env=env)
 		### Build V8 with ninja from the generated files
 		out_dir = os.path.join('out.gn', out_dir)
 		subprocess.check_call([NINJA, '-C', out_dir, 'v8'], cwd='v8', env=env)
@@ -161,5 +173,7 @@ for arch in PLATFORMS:
 			'-Properties', 'Platform='+arch+';PlatformToolset='+toolset,
 			'-OutputDirectory', '..'
 		]
+		print 'CMD: ', ['nuget', 'pack ', nuspec] + nuget_args
 		subprocess.check_call(['nuget', 'pack', nuspec] + nuget_args, cwd='nuget')
+
 		os.remove('nuget/{}-{}-{}.props'.format(name, toolset, arch))

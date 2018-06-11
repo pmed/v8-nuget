@@ -2,6 +2,6 @@
   <ItemGroup Condition="$Condition$">
     <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$(Configuration)\*.dll" />
     <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$(Configuration)\icudtl*.dat" />
-    <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$(Configuration)\*_blob.bin" />
+    <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\$(Configuration)\*_blob*.bin" />
   </ItemGroup>
 </Project>

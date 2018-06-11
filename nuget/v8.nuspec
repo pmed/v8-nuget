@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>v8-$PlatformToolset$-$Platform$</id>
+    <id>v8.TrustedCodeOpt.$PlatformToolset$-$Platform$</id>
     <version>$Version$</version>
     <authors>The V8 JavaScript Engine Authors</authors>
     <owners>The V8 NuGet package Authors</owners>
@@ -12,15 +12,15 @@
     <description>Developer files (headers/libraries) for V8 JavaScript Engine.</description>
     <tags>V8 javascript embedded native nativepackage</tags>
     <dependencies>
-      <dependency id="v8.redist-$PlatformToolset$-$Platform$" version="[$Version$]" /> 
+      <dependency id="v8.TrustedCodeOpt.redist.$PlatformToolset$-$Platform$" version="[$Version$]" /> 
     </dependencies>
   </metadata>
   <files>
     <file src="..\v8\include\**\*.h" target="include" />
     <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Debug\v8*.exp" target="lib\Debug" />
     <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Debug\v8*.lib" target="lib\Debug" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\v8*.lib" target="lib\Release" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\v8*.exp" target="lib\Release" />
+    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\v8*.lib" target="lib\Retail" />
+    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\v8*.exp" target="lib\Retail" />
     <file src="v8-$PlatformToolset$-$Platform$.props" target="build\native" />
     <file src="..\readme.md" target="" />
   </files>
