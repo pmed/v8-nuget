@@ -107,7 +107,7 @@ if XP_TOOLSET:
 	env['CL'] = '/D_USING_' + toolset.upper() + '_SDK71_;' + env.get('CL', '')
 	toolset += '_xp'
 
-if toolset == 'v141':
+if toolset.startswith('v141'):
 	is_clang = 'false'
 else:
 	subprocess.check_call([sys.executable, 'tools/clang/scripts/update.py'], cwd='v8', env=env)
