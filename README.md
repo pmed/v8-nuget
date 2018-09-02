@@ -1,6 +1,6 @@
 # NuGet package for V8 JavaScript Engine
 
-This package contains prebuild V8 binaries, debug symbols, headers and
+This packages contain prebuilt V8 binaries, debug symbols, headers and
 libraries required to embed the V8 JavaScript engine into a C++ project.
 
 | Package                     | Version
@@ -22,7 +22,7 @@ libraries required to embed the V8 JavaScript engine into a C++ project.
 ## Usage
 
 To use V8 in a project install the package `v8-$PlatformToolset-$Platform.$Version`
-from a console with `nuget install` commmand or from inside of Visual Studio
+from a console with `nuget install` command or from inside of Visual Studio
 (see menu option *Tools -> NuGet Package Manager -> Manage NuGet Packages for Solution...*)
 where
 
@@ -38,10 +38,21 @@ where
 
   * `$Version` is the actual V8 version, one of https://chromium.googlesource.com/v8/v8.git/+refs
 
+There are 3 package kinds:
 
-After successful package installation add `#include <v8.h>` in a C++ 
-project and build it. All neccessary files (*.lib, *.dll, *.pdb) should be
-referenced in the project automatically with MsBuild property sheets.
+  * `v8-$PlatformToolset-$Platform.$Version` - contains developer header and 
+    library files; depends on `v8.redist` package
+
+  * `v8.redist-$PlatformToolset-$Platform.$Version` - prebuilt V8 binaries:
+    dlls, blobs, etc.
+
+  * `v8.symbols-$PlatformToolset-$Platform.$Version` - debug symbols for V8:
+    [pdb files](https://en.wikipedia.org/wiki/Program_database)
+
+After successful packages installation add `#include <v8.h>` in a C++  project
+and build it. All necessary files (*.lib, *.dll, *.pdb) would be referenced
+in the project automatically with MsBuild property sheets.
+
 
 ## How to build
 
