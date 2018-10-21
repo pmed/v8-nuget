@@ -11,8 +11,8 @@ jobs:
   steps:
     - script: |
         set
-        "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
-         "C:\Python27amd64\python.exe" build.py
+        call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
+        "C:\Python27amd64\python.exe" build.py
       env:
         XP: $(XP)
     - script: nuget push *.nupkg %NUGET_API_KEY% -Source https://nuget.org/
@@ -29,8 +29,8 @@ jobs:
   steps:
     - script: |
         set
-        "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
-         "C:\Python27amd64\python.exe" build.py
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
+        "C:\Python27amd64\python.exe" build.py
       env:
         XP: $(XP)
     - script: nuget push *.nupkg %NUGET_API_KEY% -Source https://nuget.org/
