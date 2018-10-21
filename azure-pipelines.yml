@@ -1,0 +1,29 @@
+- job: Build VS 2015
+  pool:
+    vmImage: 'vs2015-win2012r2'
+  strategy:
+    matrix:
+      v140:
+        XP:0
+      v140_xp:
+        XP:1
+  steps:
+    - script: python build.py
+      env:
+        XP: $(XP)
+    - script: nuget push *.nupkg %NUGET_API_KEY% -Source https://nuget.org/
+
+- job: Build VS 2015
+  pool:
+    vmImage: 'vs2017-win2016'
+  strategy:
+    matrix:
+      v140:
+        XP:0
+      v140_xp:
+        XP:1
+  steps:
+    - script: python build.py
+      env:
+        XP: $(XP)
+    - script: nuget push *.nupkg %NUGET_API_KEY% -Source https://nuget.org/
