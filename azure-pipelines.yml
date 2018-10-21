@@ -5,9 +5,9 @@ jobs:
   strategy:
     matrix:
       v140:
-        XP:0
+        XP: 0
       v140_xp:
-        XP:1
+        XP: 1
   steps:
     - script: python build.py
       env:
@@ -20,9 +20,9 @@ jobs:
   strategy:
     matrix:
       v140:
-        XP:0
+        XP: 0
       v140_xp:
-        XP:1
+        XP: 1
   steps:
     - script: python build.py
       env:
