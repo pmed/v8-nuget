@@ -9,10 +9,14 @@ jobs:
       v140_xp:
         XP: 1
   steps:
+   - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '2.x' 
+        addToPath: true 
     - script: |
         set
         call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
-        "C:\Python27amd64\python.exe" build.py
+        python build.py
       env:
         XP: $(XP)
     - script: nuget push *.nupkg %NUGET_API_KEY% -Source https://nuget.org/
@@ -27,10 +31,14 @@ jobs:
       v140_xp:
         XP: 1
   steps:
+   - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '2.x' 
+        addToPath: true 
     - script: |
         set
         call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
-        "C:\Python27amd64\python.exe" build.py
+        python build.py
       env:
         XP: $(XP)
     - script: nuget push *.nupkg %NUGET_API_KEY% -Source https://nuget.org/
