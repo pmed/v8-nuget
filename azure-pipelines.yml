@@ -9,6 +9,10 @@ jobs:
       v140_xp:
         XP: 1
   steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '2.x' 
+        addToPath: true 
     - script: python build.py
       env:
         XP: $(XP)
@@ -24,6 +28,10 @@ jobs:
       v140_xp:
         XP: 1
   steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '2.x' 
+        addToPath: true 
     - script: python build.py
       env:
         XP: $(XP)
