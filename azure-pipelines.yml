@@ -1,5 +1,5 @@
 jobs:
-- job: Build VS 2015
+- job: Build-VS2015
   pool:
     vmImage: 'vs2015-win2012r2'
   strategy:
@@ -14,7 +14,7 @@ jobs:
         XP: $(XP)
     - script: nuget push *.nupkg %NUGET_API_KEY% -Source https://nuget.org/
 
-- job: Build VS 2015
+- job: Build-VS2017
   pool:
     vmImage: 'vs2017-win2016'
   strategy:
