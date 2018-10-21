@@ -1,3 +1,4 @@
+jobs:
 - job: Build VS 2015
   pool:
     vmImage: 'vs2015-win2012r2'
