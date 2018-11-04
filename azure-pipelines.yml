@@ -34,6 +34,7 @@ jobs:
     - script: |
         call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
         set
+        where /R "%WindowsSdkDir:~0,-1%" dbghelp.dll
         python build.py
       env:
         XP: $(XP)
