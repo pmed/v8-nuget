@@ -9,11 +9,6 @@ jobs:
       v140_xp:
         XP: 1
   steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '2.x' 
-        addToPath: true
-        architecture: 'x86'
     - script: |
         set
         call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
@@ -36,7 +31,6 @@ jobs:
       inputs:
         versionSpec: '2.x' 
         addToPath: true 
-        architecture: 'x86'
     - script: |
         set
         call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
