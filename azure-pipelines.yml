@@ -12,7 +12,8 @@ jobs:
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '2.x' 
-        addToPath: true 
+        addToPath: true
+        architecture: 'x86'
     - script: |
         set
         call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
@@ -26,15 +27,16 @@ jobs:
     vmImage: 'vs2017-win2016'
   strategy:
     matrix:
-      v140:
+      v141:
         XP: 0
-      v140_xp:
+      v141_xp:
         XP: 1
   steps:
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '2.x' 
         addToPath: true 
+        architecture: 'x86'
     - script: |
         set
         call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
