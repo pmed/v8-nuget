@@ -10,7 +10,7 @@ jobs:
         XP: 1
   steps:
     - script: |
-        "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
+        call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
         set
         python build.py
       env:
@@ -32,7 +32,7 @@ jobs:
         versionSpec: '2.x' 
         addToPath: true 
     - script: |
-        "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
         set
         python build.py
       env:
