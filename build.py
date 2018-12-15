@@ -104,7 +104,6 @@ if XP_TOOLSET:
 	env['INCLUDE'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Include;' + env.get('INCLUDE', '')
 	env['PATH'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Bin;' + env.get('PATH', '')
 	env['LIB'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Lib;' + env.get('LIB', '')
-	env['CL'] = '/D_USING_' + toolset.upper() + '_SDK71_;' + env.get('CL', '')
 	toolset += '_xp'
 
 if toolset.startswith('v141'):
@@ -114,6 +113,9 @@ else:
 	subprocess.check_call([sys.executable, 'tools/clang/scripts/update.py'], cwd='v8', env=env)
 	del env['GYP_MSVS_VERSION']
 	del env['GYP_MSVS_OVERRIDE_PATH']
+
+import pprint
+pprint.pprint(env)
 
 print 'V8 version', version
 print 'Visual Studio', vs_version, 'in', vs_install_dir
