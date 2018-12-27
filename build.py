@@ -32,6 +32,14 @@ BIN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin')
 GN = os.path.join(BIN_DIR, 'gn.exe')
 NINJA = os.path.join(BIN_DIR, 'ninja.exe')
 
+GN_OPTIONS = [
+	'is_component_build=true',
+	'treat_warnings_as_errors=false',
+	'use_jumbo_build=true',
+	'symbol_level=1',
+	'v8_enable_fast_mksnapshot=true',
+]
+
 def git_fetch(url, target):
 	if isinstance(url, dict):
 		#url = url['url']
@@ -114,8 +122,8 @@ else:
 	del env['GYP_MSVS_VERSION']
 	del env['GYP_MSVS_OVERRIDE_PATH']
 
-import pprint
-pprint.pprint(env)
+#import pprint
+#pprint.pprint(env)
 
 print 'V8 version', version
 print 'Visual Studio', vs_version, 'in', vs_install_dir
@@ -137,10 +145,10 @@ for arch in PLATFORMS:
 
 	for conf in CONFIGURATIONS:
 		### Generate build.ninja files in out.gn/toolset/arch/conf directory
-		out_dir = os.path.join(toolset, arch, conf)
+		out_dir = os.path.join(toolset, arch, conf, V8_VERSION)
 		builder = ('ia32' if arch == 'x86' else arch) + '.' + conf.lower()
 		subprocess.check_call([sys.executable, 'tools/dev/v8gen.py',
-			'-b', builder, out_dir, '-vv', '--', 'is_clang='+is_clang, 'is_component_build=true', 'treat_warnings_as_errors=false'], cwd='v8', env=env)
+			'-b', builder, out_dir, '-vv', '--', 'is_clang='+is_clang] + GN_OPTIONS, cwd='v8', env=env)
 		### Build V8 with ninja from the generated files
 		out_dir = os.path.join('out.gn', out_dir)
 		subprocess.check_call([NINJA, '-C', out_dir, 'v8'], cwd='v8', env=env)
@@ -163,7 +171,7 @@ for arch in PLATFORMS:
 		nuget_args = [
 			'-NoPackageAnalysis',
 			'-Version', version,
-			'-Properties', 'Platform='+arch+';PlatformToolset='+toolset,
+			'-Properties', 'Platform='+arch+';PlatformToolset='+toolset+';BuildVersion='+V8_VERSION,
 			'-OutputDirectory', '..'
 		]
 		subprocess.check_call(['nuget', 'pack', nuspec] + nuget_args, cwd='nuget')
