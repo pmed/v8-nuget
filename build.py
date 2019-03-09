@@ -144,8 +144,8 @@ for arch in PLATFORMS:
 #		env['PATH'] = os.path.join(vs_install_dir, r'VC\ClangC2\bin', prefix, prefix) + ';' + env.get('PATH', '')
 	arch = arch.lower()
 	for conf in CONFIGURATIONS:
-		### Generate build.ninja files in out.gn/toolset/arch/conf directory
-		out_dir = os.path.join(toolset, arch, conf, V8_VERSION)
+		### Generate build.ninja files in out.gn/V8_VERSION/toolset/arch/conf directory
+		out_dir = os.path.join(V8_VERSION, toolset, arch, conf)
 		builder = ('ia32' if arch == 'x86' else arch) + '.' + conf.lower()
 		subprocess.check_call([sys.executable, 'tools/dev/v8gen.py',
 			'-b', builder, out_dir, '-vv', '--', 'is_clang='+is_clang] + GN_OPTIONS, cwd='v8', env=env)

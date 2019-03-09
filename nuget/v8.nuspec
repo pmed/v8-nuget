@@ -17,12 +17,12 @@
   </metadata>
   <files>
     <file src="..\v8\include\**\*.h" target="include" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Debug\$BuildVersion$\v8*.exp" target="lib\Debug" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Debug\$BuildVersion$\v8*.lib" target="lib\Debug" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Debug\$BuildVersion$\v8_build_config.json" target="lib\Debug" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\$BuildVersion$\v8*.lib" target="lib\Release" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\$BuildVersion$\v8*.exp" target="lib\Release" />
-    <file src="..\v8\out.gn\$PlatformToolset$\$Platform$\Release\$BuildVersion$\v8_build_config.json" target="lib\Release" />
+    <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Debug\v8*.exp" target="lib\Debug" />
+    <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Debug\v8*.lib" target="lib\Debug" />
+    <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Debug\v8_build_config.json" target="lib\Debug" />
+    <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Release\v8*.lib" target="lib\Release" />
+    <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Release\v8*.exp" target="lib\Release" />
+    <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Release\v8_build_config.json" target="lib\Release" />
     <file src="v8-$PlatformToolset$-$Platform$.props" target="build\native" />
     <file src="..\readme.md" target="" />
   </files>
