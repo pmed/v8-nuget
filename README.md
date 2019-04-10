@@ -8,9 +8,11 @@ libraries required to embed the V8 JavaScript engine into a C++ project.
 |V8 x86 for Visual Studio 2013|[![NuGet](https://img.shields.io/nuget/v/v8-v120-x86.svg)](https://www.nuget.org/packages/v8-v120-x86/)|
 |V8 x86 for Visual Studio 2015|[![NuGet](https://img.shields.io/nuget/v/v8-v140-x86.svg)](https://www.nuget.org/packages/v8-v140-x86/)|
 |V8 x86 for Visual Studio 2017|[![NuGet](https://img.shields.io/nuget/v/v8-v141-x86.svg)](https://www.nuget.org/packages/v8-v141-x86/)|
+|V8 x86 for Visual Studio 2019|[![NuGet](https://img.shields.io/nuget/v/v8-v142-x86.svg)](https://www.nuget.org/packages/v8-v142-x86/)|
 |V8 x64 for Visual Studio 2013|[![NuGet](https://img.shields.io/nuget/v/v8-v120-x64.svg)](https://www.nuget.org/packages/v8-v120-x64/)|
 |V8 x64 for Visual Studio 2015|[![NuGet](https://img.shields.io/nuget/v/v8-v140-x64.svg)](https://www.nuget.org/packages/v8-v140-x64/)|
 |V8 x64 for Visual Studio 2017|[![NuGet](https://img.shields.io/nuget/v/v8-v141-x64.svg)](https://www.nuget.org/packages/v8-v141-x64/)|
+|V8 x64 for Visual Studio 2019|[![NuGet](https://img.shields.io/nuget/v/v8-v142-x64.svg)](https://www.nuget.org/packages/v8-v142-x64/)|
 |V8 x86 for Visual Studio 2013 XP platform toolset|[![NuGet](https://img.shields.io/nuget/v/v8-v120_xp-x86.svg)](https://www.nuget.org/packages/v8-v120_xp-x86/)|
 |V8 x86 for Visual Studio 2015 XP platform toolset|[![NuGet](https://img.shields.io/nuget/v/v8-v140_xp-x86.svg)](https://www.nuget.org/packages/v8-v140_xp-x86/)|
 |V8 x86 for Visual Studio 2017 XP platform toolset|[![NuGet](https://img.shields.io/nuget/v/v8-v141_xp-x86.svg)](https://www.nuget.org/packages/v8-v141_xp-x86/)|
@@ -30,6 +32,7 @@ where
     * `v120` - for Visual Studio 2013
     * `v140` - for Visual Studio 2015
     * `v141` - for Visual Studio 2017
+    * `v142` - for Visual Studio 2019
     * `v120_xp` - for Visual Studio 2013 XP platform toolset
     * `v140_xp` - for Visual Studio 2015 XP platform toolset
     * `v141_xp` - for Visual Studio 2017 XP platform toolset

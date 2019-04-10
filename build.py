@@ -96,6 +96,7 @@ vs_versions = {
 	'12.0': { 'version': '2013', 'toolset': 'v120' },
 	'14.0': { 'version': '2015', 'toolset': 'v140' },
 	'15.0': { 'version': '2017', 'toolset': 'v141' },
+	'16.0': { 'version': '2019', 'toolset': 'v142' },
 }
 vs_version = vs_versions[os.environ.get('VisualStudioVersion', '14.0')]
 toolset = vs_version['toolset']
@@ -109,12 +110,14 @@ env['GYP_MSVS_VERSION'] = vs_version
 env['GYP_MSVS_OVERRIDE_PATH'] = vs_install_dir
 
 if XP_TOOLSET:
+	if toolset.startswith('v142'):
+		raise RuntimeError("XP toolset is not supported")
 	env['INCLUDE'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Include;' + env.get('INCLUDE', '')
 	env['PATH'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Bin;' + env.get('PATH', '')
 	env['LIB'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Lib;' + env.get('LIB', '')
 	toolset += '_xp'
 
-if toolset.startswith('v141'):
+if toolset.startswith('v141') or toolset.startswith('v142'):
 	is_clang = 'false'
 else:
 	is_clang = 'true'
