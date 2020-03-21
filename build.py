@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import glob
+import json
 import os
 import re
 import string
@@ -34,10 +35,21 @@ NINJA = os.path.join(BIN_DIR, 'ninja.exe')
 
 GN_OPTIONS = [
 	'is_component_build=true',
+	'is_clang=false',
 	'treat_warnings_as_errors=false',
-	'use_jumbo_build=true',
-	'symbol_level=1',
+	'fatal_linker_warnings=false',
+	#'use_jumbo_build=true', # removed in V8 version 8.1
+	#'symbol_level=1',
 	'v8_enable_fast_mksnapshot=true',
+	'v8_enable_fast_torque=true',
+	'v8_enable_verify_heap=false', # to fix VC++ Linker error in Debug configuratons
+	#'v8_optimized_debug=false',
+	#'v8_use_snapshot=true',
+	#'v8_use_external_startup_data=false',
+	#'v8_enable_handle_zapping=true',
+	#'v8_check_header_includes=true',
+	#'v8_win64_unwinding_info=false',
+	#'dcheck_always_on=true',
 ]
 
 def git_fetch(url, target):
@@ -162,12 +174,37 @@ shutil.copy(GN, 'v8/buildtools/win')
 if os.path.isfile('v8/build/util/lastchange.py'):
 	subprocess.check_call([sys.executable, 'lastchange.py', '-o', 'LASTCHANGE'], cwd='v8/build/util', env=env)
 
+def cpp_defines_from_v8_json_build_config(filename):
+	json_file = open(filename)
+	config = json.load(json_file)
+
+	defines = set()
+	if config.get('is_debug', False) or config.get('is_full_debug', False) or config.get('v8_enable_v8_checks', False):
+		defines.add('V8_ENABLE_CHECKS')
+
+	if config.get('v8_enable_pointer_compression', False):
+		defines.add('V8_COMPRESS_POINTERS')
+		defines.add('V8_31BIT_SMIS_ON_64BIT_ARCH')
+
+	if config.get('v8_enable_31bit_smis_on_64bit_arch', False):
+		defines.add('V8_31BIT_SMIS_ON_64BIT_ARCH')
+
+	if config.get('v8_deprecation_warnings', False):
+		defines.add('V8_DEPRECATION_WARNINGS')
+
+	if config.get('v8_imminent_deprecation_warnings', False):
+		defines.add('V8_IMMINENT_DEPRECATION_WARNINGS')
+
+	return ';'.join(defines)
+
+
 ## Build V8
 for arch in PLATFORMS:
 #	if 'CLANG_TOOLSET' in env:
 #		prefix = 'amd64' if arch == 'x64' else arch
 #		env['PATH'] = os.path.join(vs_install_dir, r'VC\ClangC2\bin', prefix, prefix) + ';' + env.get('PATH', '')
 	arch = arch.lower()
+	cpp_defines = ''
 	for conf in CONFIGURATIONS:
 		### Generate build.ninja files in out.gn/V8_VERSION/toolset/arch/conf directory
 		out_dir = os.path.join('out.gn', V8_VERSION, toolset, arch, conf)
@@ -177,6 +214,9 @@ for arch in PLATFORMS:
 		subprocess.check_call([GN, 'gen', out_dir, '--args='+' '.join(options)], cwd='v8', env=env)
 		### Build V8 with ninja from the generated files
 		subprocess.check_call([NINJA, '-C', out_dir, 'v8'], cwd='v8', env=env)
+		cpp_defines += """
+<PreprocessorDefinitions Condition="'$(Configuration)' == '{conf}'">{defines};%(PreprocessorDefinitions)</PreprocessorDefinitions>
+""".format(conf=conf, defines=cpp_defines_from_v8_json_build_config(os.path.join('v8', out_dir, 'v8_build_config.json')))
 
 	if arch == 'x86':
 		platform = "('$(Platform)' == 'x86' Or '$(Platform)' == 'Win32')"
@@ -189,6 +229,8 @@ for arch in PLATFORMS:
 		## Generate property sheets with specific conditions
 		props = open('nuget/{}.props'.format(name)).read()
 		props = props.replace('$Condition$', condition)
+		if cpp_defines:
+			 props = props.replace('<PreprocessorDefinitions />', cpp_defines)
 		open('nuget/{}-{}-{}.props'.format(name, toolset, arch), 'w+').write(props)
 
 		nuspec = name + '.nuspec'
