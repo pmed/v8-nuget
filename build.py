@@ -79,12 +79,22 @@ def copytree(src_dir, dest_dir):
 ## Fetch V8 sources
 git_fetch(V8_URL+'@'+V8_VERSION, 'v8')
 
-## Fetch V8 source dependencies besides tests
+## Fetch only required V8 source dependencies
+required_deps = [
+	'v8/build',
+	'v8/third_party/icu',
+	'v8/base/trace_event/common',
+	'v8/third_party/jinja2',
+	'v8/third_party/markupsafe',
+	'v8/third_party/googletest/src',
+	'v8/third_party/zlib',
+]
+
 Var = lambda name: vars[name]
 deps = open('v8/DEPS').read()
 exec deps
 for dep in deps:
-	if not dep.startswith('v8/test/'):
+	if dep in required_deps:
 		git_fetch(deps[dep], dep)
 
 ### Get v8 version from defines in v8-version.h
@@ -108,6 +118,16 @@ env['SKIP_V8_GYP_ENV'] = '1'
 env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
 env['GYP_MSVS_VERSION'] = vs_version
 env['GYP_MSVS_OVERRIDE_PATH'] = vs_install_dir
+
+#  old VC build tools?
+vc_tools_install_dir = os.environ.get('VCToolsInstallDir')
+if vc_tools_install_dir:
+	vs_install_dir = vc_tools_install_dir
+vc_tools_version = os.environ.get('VCToolsVersion')
+if vc_tools_version:
+	vs_version = vc_tools_version
+	toolset = 'v' + vs_version.replace('.', '')[:3]
+
 
 if XP_TOOLSET:
 	if toolset.startswith('v142'):
@@ -133,6 +153,8 @@ print 'Visual Studio', vs_version, 'in', vs_install_dir
 print 'C++ Toolset', toolset
 
 # Copy GN to the V8 buildtools in order to work v8gen script
+if not os.path.exists('v8/buildtools/win'):
+    os.makedirs('v8/buildtools/win')
 shutil.copy(GN, 'v8/buildtools/win')
 
 # Generate LASTCHANGE file
@@ -148,12 +170,12 @@ for arch in PLATFORMS:
 	arch = arch.lower()
 	for conf in CONFIGURATIONS:
 		### Generate build.ninja files in out.gn/V8_VERSION/toolset/arch/conf directory
-		out_dir = os.path.join(V8_VERSION, toolset, arch, conf)
-		builder = ('ia32' if arch == 'x86' else arch) + '.' + conf.lower()
-		subprocess.check_call([sys.executable, 'tools/dev/v8gen.py',
-			'-b', builder, out_dir, '-vv', '--', 'is_clang='+is_clang] + GN_OPTIONS, cwd='v8', env=env)
+		out_dir = os.path.join('out.gn', V8_VERSION, toolset, arch, conf)
+		options = GN_OPTIONS
+		options.append('is_debug=' + ('true' if conf == 'Debug' else 'false'))
+		options.append('target_cpu="' + arch + '"')
+		subprocess.check_call([GN, 'gen', out_dir, '--args='+' '.join(options)], cwd='v8', env=env)
 		### Build V8 with ninja from the generated files
-		out_dir = os.path.join('out.gn', out_dir)
 		subprocess.check_call([NINJA, '-C', out_dir, 'v8'], cwd='v8', env=env)
 
 	if arch == 'x86':
