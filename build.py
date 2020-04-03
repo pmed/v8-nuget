@@ -26,6 +26,7 @@ CONFIGURATION = sys.argv[3] if len(sys.argv) > 3 else os.environ.get('CONFIGURAT
 CONFIGURATIONS = [CONFIGURATION] if CONFIGURATION else ['Debug', 'Release']
 
 XP_TOOLSET = (sys.argv[4] if len(sys.argv) > 4 else os.environ.get('XP')) == '1'
+USE_CLANG = (sys.argv[5] if len(sys.argv) > 5 else os.environ.get('USE_CLANG', '1')) == '1'
 
 PACKAGES = ['v8', 'v8.redist', 'v8.symbols']
 
@@ -35,7 +36,6 @@ NINJA = os.path.join(BIN_DIR, 'ninja.exe')
 
 GN_OPTIONS = [
 	'is_component_build=true',
-	'is_clang=false',
 	'treat_warnings_as_errors=false',
 	'fatal_linker_warnings=false',
 	#'use_jumbo_build=true', # removed in V8 version 8.1
@@ -51,6 +51,12 @@ GN_OPTIONS = [
 	#'v8_win64_unwinding_info=false',
 	#'dcheck_always_on=true',
 ]
+
+if USE_CLANG:
+	GN_OPTIONS.extend(['is_clang=true', 'use_custom_libcxx=false'])
+else:
+	GN_OPTIONS.extend(['is_clang=false'])
+
 
 def git_fetch(url, target):
 	if isinstance(url, dict):
@@ -102,6 +108,9 @@ required_deps = [
 	'v8/third_party/zlib',
 ]
 
+if USE_CLANG:
+	required_deps.append('v8/tools/clang')
+
 Var = lambda name: vars[name]
 deps = open('v8/DEPS').read()
 exec deps
@@ -149,13 +158,9 @@ if XP_TOOLSET:
 	env['LIB'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Lib;' + env.get('LIB', '')
 	toolset += '_xp'
 
-if toolset.startswith('v141') or toolset.startswith('v142'):
-	is_clang = 'false'
-else:
-	is_clang = 'true'
-	subprocess.check_call([sys.executable, 'tools/clang/scripts/update.py'], cwd='v8', env=env)
-	del env['GYP_MSVS_VERSION']
-	del env['GYP_MSVS_OVERRIDE_PATH']
+subprocess.check_call([sys.executable, 'vs_toolchain.py', 'update'], cwd='v8/build', env=env)
+if USE_CLANG:
+	subprocess.check_call([sys.executable, 'update.py'], cwd='v8/tools/clang/scripts', env=env)
 
 #import pprint
 #pprint.pprint(env)
