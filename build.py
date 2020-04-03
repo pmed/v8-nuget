@@ -69,13 +69,13 @@ def git_fetch(url, target):
 		ref = parts[1]
 	else:
 		ref = 'HEAD'
-	print 'Fetch {}@{} into {}'.format(url, ref, target)
+	print('Fetch {}@{} into {}'.format(url, ref, target))
 
 	if not os.path.isdir(os.path.join(target, '.git')):
 		subprocess.check_call(['git', 'init', target])
-	fetch_args = ['git', 'fetch', '--depth=1', '--update-shallow', '--update-head-ok', '--quiet', url, ref]
+	fetch_args = ['git', 'fetch', '--depth=1', '--update-shallow', '--update-head-ok', '--verbose', url, ref]
 	if subprocess.call(fetch_args, cwd=target) != 0:
-		print 'RETRY:', target
+		print('RETRY: {}'.format(target))
 		shutil.rmtree(target, ignore_errors=True)
 		subprocess.check_call(['git', 'init', target])
 		subprocess.check_call(fetch_args, cwd=target)
@@ -113,15 +113,15 @@ if USE_CLANG:
 
 Var = lambda name: vars[name]
 deps = open('v8/DEPS').read()
-exec deps
+exec(deps)
 for dep in deps:
 	if dep in required_deps:
 		git_fetch(deps[dep], dep)
 
 ### Get v8 version from defines in v8-version.h
 v8_version_h = open('v8/include/v8-version.h').read()
-version = string.join(map(lambda name: re.search(r'^#define\s+'+name+r'\s+(\d+)$', v8_version_h, re.M).group(1), \
-	['V8_MAJOR_VERSION', 'V8_MINOR_VERSION', 'V8_BUILD_NUMBER', 'V8_PATCH_LEVEL']), '.')
+version = '.'.join(map(lambda name: re.search(r'^#define\s+'+name+r'\s+(\d+)$', v8_version_h, re.M).group(1), \
+	['V8_MAJOR_VERSION', 'V8_MINOR_VERSION', 'V8_BUILD_NUMBER', 'V8_PATCH_LEVEL']))
 
 vs_versions = {
 	'12.0': { 'version': '2013', 'toolset': 'v120' },
@@ -162,12 +162,9 @@ subprocess.check_call([sys.executable, 'vs_toolchain.py', 'update'], cwd='v8/bui
 if USE_CLANG:
 	subprocess.check_call([sys.executable, 'update.py'], cwd='v8/tools/clang/scripts', env=env)
 
-#import pprint
-#pprint.pprint(env)
-
-print 'V8 version', version
-print 'Visual Studio', vs_version, 'in', vs_install_dir
-print 'C++ Toolset', toolset
+print('V8 {}'.format(version))
+print('Visual Studio {} in {}'.format(vs_version, vs_install_dir))
+print('C++ Toolset {}'.format(toolset))
 
 # Copy GN to the V8 buildtools in order to work v8gen script
 if not os.path.exists('v8/buildtools/win'):
@@ -239,7 +236,7 @@ for arch in PLATFORMS:
 		open('nuget/{}-{}-{}.props'.format(name, toolset, arch), 'w+').write(props)
 
 		nuspec = name + '.nuspec'
-		print 'NuGet pack {} for V8 {} {} {}'.format(nuspec, version, toolset, arch)
+		print('NuGet pack {} for V8 {} {} {}'.format(nuspec, version, toolset, arch))
 		nuget_args = [
 			'-NoPackageAnalysis',
 			'-Version', version,
