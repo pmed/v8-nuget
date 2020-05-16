@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import glob
 import json
 import os
@@ -9,31 +10,7 @@ import sys
 import subprocess
 import shutil
 
-V8_URL = 'https://chromium.googlesource.com/v8/v8.git'
-V8_VERSION = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('V8_VERSION', '')
-
-# Use only Last Known Good Revision branches
-if V8_VERSION == '':
-	V8_VERSION = 'lkgr' 
-elif V8_VERSION.count('.') < 2 and all(x.isdigit() for x in V8_VERSION.split('.')):
-	V8_VERSION += '-lkgr' 
-
-
-PLATFORM = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('PLATFORM', '')
-PLATFORMS = [PLATFORM] if PLATFORM else ['x86', 'x64']
-
-CONFIGURATION = sys.argv[3] if len(sys.argv) > 3 else os.environ.get('CONFIGURATION', '')
-CONFIGURATIONS = [CONFIGURATION] if CONFIGURATION else ['Debug', 'Release']
-
-XP_TOOLSET = (sys.argv[4] if len(sys.argv) > 4 else os.environ.get('XP')) == '1'
-USE_CLANG = (sys.argv[5] if len(sys.argv) > 5 else os.environ.get('USE_CLANG', '1')) == '1'
-
-PACKAGES = ['v8', 'v8.redist', 'v8.symbols']
-
 BIN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin')
-GN = os.path.join(BIN_DIR, 'gn.exe')
-NINJA = os.path.join(BIN_DIR, 'ninja.exe')
-
 GN_OPTIONS = {
 	'is_component_build': True,
 	'treat_warnings_as_errors' : False,
@@ -50,9 +27,63 @@ GN_OPTIONS = {
 	#'v8_check_header_includes' : True,
 	#'v8_win64_unwinding_info' : False,
 	#'dcheck_always_on' : True,
-	'is_clang': USE_CLANG,
+	#'is_clang': USE_CLANG,
 	'use_custom_libcxx' : False,
 }
+
+arg_parser = argparse.ArgumentParser(description='Build V8 from sources', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+arg_parser.add_argument('--url',
+	dest='V8_URL',
+	default='https://chromium.googlesource.com/v8/v8.git',
+	help='Source url')
+arg_parser.add_argument('--version',
+	dest='V8_VERSION',
+	default=os.environ.get('V8_VERSION', 'lkgr'),
+	help='Version tag or branch name')
+arg_parser.add_argument('--platform',
+	dest='PLATFORMS',
+	nargs='+',
+	choices=['x86', 'x64'],
+	default=os.environ.get('PLATFORM', ['x86', 'x64']),
+	help='Target platforms')
+arg_parser.add_argument('--config',
+	dest='CONFIGURATIONS',
+	nargs='+',
+	choices=['Debug', 'Release'],
+	default=os.environ.get('CONFIGURATION', ['Debug', 'Release']),
+	help='Target configrations')
+arg_parser.add_argument('--xp',
+	dest='XP_TOOLSET',
+	action='store_true',
+	default=os.environ.get('XP', '') == '1',
+	help='Build for Windows XP toolset')
+arg_parser.add_argument('--no-clang',
+	dest='USE_CLANG',
+	action='store_false',
+	default=os.environ.get('USE_CLANG', '1') == '1',
+	help='Compile with clang')
+arg_parser.add_argument('--gn',
+	dest='GN',
+	default=os.path.join(BIN_DIR, 'gn.exe'),
+	help='Path to gn executable')
+arg_parser.add_argument('--ninja',
+	dest='NINJA',
+	default=os.path.join(BIN_DIR, 'ninja.exe'),
+	help='Path to ninja executable')
+arg_parser.add_argument('--gn-option',
+	dest='GN_OPTIONS',
+	nargs="+", metavar="KEY=VAL",
+	action=type('', (argparse.Action, ), dict(__call__ = lambda a, p, n, v, o: getattr(n, a.dest).update(dict([kv.split('=') for kv in v])))),
+	default=GN_OPTIONS,
+	help='Add gn option')
+
+args = arg_parser.parse_args()
+
+args.GN_OPTIONS['is_clang'] = args.USE_CLANG
+
+# Use only Last Known Good Revision branches
+if args.V8_VERSION.count('.') < 2 and all(x.isdigit() for x in args.V8_VERSION.split('.')):
+	args.V8_VERSION += '-lkgr' 
 
 
 def git_fetch(url, target):
@@ -92,7 +123,7 @@ def copytree(src_dir, dest_dir):
 # __main__
 
 ## Fetch V8 sources
-git_fetch(V8_URL+'@'+V8_VERSION, 'v8')
+git_fetch(args.V8_URL+'@'+args.V8_VERSION, 'v8')
 
 ## Fetch only required V8 source dependencies
 required_deps = [
@@ -105,7 +136,7 @@ required_deps = [
 	'v8/third_party/zlib',
 ]
 
-if USE_CLANG:
+if args.USE_CLANG:
 	required_deps.append('v8/tools/clang')
 
 Var = lambda name: vars[name]
@@ -147,7 +178,7 @@ if vc_tools_version:
 	toolset = 'v' + vs_version.replace('.', '')[:3]
 
 
-if XP_TOOLSET:
+if args.XP_TOOLSET:
 	if toolset.startswith('v142'):
 		raise RuntimeError("XP toolset is not supported")
 	env['INCLUDE'] = r'%ProgramFiles(x86)%\Microsoft SDKs\Windows\7.1A\Include;' + env.get('INCLUDE', '')
@@ -156,7 +187,7 @@ if XP_TOOLSET:
 	toolset += '_xp'
 
 subprocess.check_call([sys.executable, 'vs_toolchain.py', 'update'], cwd='v8/build', env=env)
-if USE_CLANG:
+if args.USE_CLANG:
 	subprocess.check_call([sys.executable, 'update.py'], cwd='v8/tools/clang/scripts', env=env)
 
 print('V8 {}'.format(version))
@@ -166,7 +197,7 @@ print('C++ Toolset {}'.format(toolset))
 # Copy GN to the V8 buildtools in order to work v8gen script
 if not os.path.exists('v8/buildtools/win'):
     os.makedirs('v8/buildtools/win')
-shutil.copy(GN, 'v8/buildtools/win')
+shutil.copy(args.GN, 'v8/buildtools/win')
 
 # Generate LASTCHANGE file
 # similiar to `lastchange` hook from DEPS
@@ -202,21 +233,21 @@ def build(target, options, env, out_dir):
 	for k, v in options.items():
 		q = '"' if isinstance(v, str) else ''
 		gn_args.append(k + '=' + q + str(v) + q)
-	subprocess.check_call([GN, 'gen', out_dir, '--args=' + ' '.join(gn_args).lower()], cwd='v8', env=env)
-	subprocess.check_call([NINJA, '-C', out_dir, target], cwd='v8', env=env)
+	subprocess.check_call([args.GN, 'gen', out_dir, '--args=' + ' '.join(gn_args).lower()], cwd='v8', env=env)
+	subprocess.check_call([args.NINJA, '-C', out_dir, target], cwd='v8', env=env)
 
 
 ## Build V8
-for arch in PLATFORMS:
+for arch in args.PLATFORMS:
 #	if 'CLANG_TOOLSET' in env:
 #		prefix = 'amd64' if arch == 'x64' else arch
 #		env['PATH'] = os.path.join(vs_install_dir, r'VC\ClangC2\bin', prefix, prefix) + ';' + env.get('PATH', '')
 	arch = arch.lower()
 	cpp_defines = ''
-	for conf in CONFIGURATIONS:
+	for conf in args.CONFIGURATIONS:
 		### Generate build.ninja files in out.gn/V8_VERSION/toolset/arch/conf directory
-		out_dir = os.path.join('out.gn', V8_VERSION, toolset, arch, conf)
-		options = GN_OPTIONS
+		out_dir = os.path.join('out.gn', args.V8_VERSION, toolset, arch, conf)
+		options = args.GN_OPTIONS
 		options['is_debug'] = (conf == 'Debug')
 		options['target_cpu'] = arch
 		build('v8', options, env, out_dir)
@@ -231,7 +262,7 @@ for arch in PLATFORMS:
 	condition = "'$(PlatformToolset)' == '{}' And {}".format(toolset, platform)
 
 	## Build NuGet packages
-	for name in PACKAGES:
+	for name in ['v8', 'v8.redist', 'v8.symbols']:
 		## Generate property sheets with specific conditions
 		props = open('nuget/{}.props'.format(name)).read()
 		props = props.replace('$Condition$', condition)
