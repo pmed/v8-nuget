@@ -34,28 +34,25 @@ BIN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin')
 GN = os.path.join(BIN_DIR, 'gn.exe')
 NINJA = os.path.join(BIN_DIR, 'ninja.exe')
 
-GN_OPTIONS = [
-	'is_component_build=true',
-	'treat_warnings_as_errors=false',
-	'fatal_linker_warnings=false',
-	#'use_jumbo_build=true', # removed in V8 version 8.1
-	#'symbol_level=1',
-	'v8_enable_fast_mksnapshot=true',
-	'v8_enable_fast_torque=true',
-	'v8_enable_verify_heap=false', # to fix VC++ Linker error in Debug configuratons
-	#'v8_optimized_debug=false',
-	#'v8_use_snapshot=true',
-	#'v8_use_external_startup_data=false',
-	#'v8_enable_handle_zapping=true',
-	#'v8_check_header_includes=true',
-	#'v8_win64_unwinding_info=false',
-	#'dcheck_always_on=true',
-]
-
-if USE_CLANG:
-	GN_OPTIONS.extend(['is_clang=true', 'use_custom_libcxx=false'])
-else:
-	GN_OPTIONS.extend(['is_clang=false'])
+GN_OPTIONS = {
+	'is_component_build': True,
+	'treat_warnings_as_errors' : False,
+	'fatal_linker_warnings' : False,
+	'use_jumbo_build' : True, # removed in V8 version 8.1
+	#'symbol_level' : 1,
+	'v8_enable_fast_mksnapshot' : True,
+	'v8_enable_fast_torque' : True,
+	'v8_enable_verify_heap' : False, # to fix VC++ Linker error in Debug configuratons
+	#'v8_optimized_debug' : False,
+	#'v8_use_snapshot' : True,
+	#'v8_use_external_startup_data' : False,
+	#'v8_enable_handle_zapping' : True,
+	#'v8_check_header_includes' : True,
+	#'v8_win64_unwinding_info' : False,
+	#'dcheck_always_on' : True,
+	'is_clang': USE_CLANG,
+	'use_custom_libcxx' : False,
+}
 
 
 def git_fetch(url, target):
@@ -200,6 +197,15 @@ def cpp_defines_from_v8_json_build_config(filename):
 	return ';'.join(defines)
 
 
+def build(target, options, env, out_dir):
+	gn_args = list()
+	for k, v in options.items():
+		q = '"' if isinstance(v, str) else ''
+		gn_args.append(k + '=' + q + str(v) + q)
+	subprocess.check_call([GN, 'gen', out_dir, '--args=' + ' '.join(gn_args).lower()], cwd='v8', env=env)
+	subprocess.check_call([NINJA, '-C', out_dir, target], cwd='v8', env=env)
+
+
 ## Build V8
 for arch in PLATFORMS:
 #	if 'CLANG_TOOLSET' in env:
@@ -211,11 +217,9 @@ for arch in PLATFORMS:
 		### Generate build.ninja files in out.gn/V8_VERSION/toolset/arch/conf directory
 		out_dir = os.path.join('out.gn', V8_VERSION, toolset, arch, conf)
 		options = GN_OPTIONS
-		options.append('is_debug=' + ('true' if conf == 'Debug' else 'false'))
-		options.append('target_cpu="' + arch + '"')
-		subprocess.check_call([GN, 'gen', out_dir, '--args='+' '.join(options)], cwd='v8', env=env)
-		### Build V8 with ninja from the generated files
-		subprocess.check_call([NINJA, '-C', out_dir, 'v8'], cwd='v8', env=env)
+		options['is_debug'] = (conf == 'Debug')
+		options['target_cpu'] = arch
+		build('v8', options, env, out_dir)
 		cpp_defines += """
 <PreprocessorDefinitions Condition="'$(Configuration)' == '{conf}'">{defines};%(PreprocessorDefinitions)</PreprocessorDefinitions>
 """.format(conf=conf, defines=cpp_defines_from_v8_json_build_config(os.path.join('v8', out_dir, 'v8_build_config.json')))
