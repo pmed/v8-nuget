@@ -7,6 +7,10 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        platform: ['x64', 'x86]
+        lib: ['shared', 'monolith']
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -21,4 +25,14 @@ jobs:
       with:
         toolset: '14.2'
     - name: Build
-      run: python2 build.py --version 8.4
+      run: python build.py --version=8.4 --platform=${{ matrix.platform }} --libs=${{ matrix.lib }}
+    - name: Store packages
+      uses: actions/upload-artifact@v2
+      with:
+        name: packages-8.4-${{ matrix.platform }}-${{ matrix.lib }}
+        path: *.nupkg
+    - name: Publish
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-api-key: ${{ secrets.NuGetAPIKey }}
+      run: nuget push *.nupkg 
