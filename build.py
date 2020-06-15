@@ -164,23 +164,22 @@ vs_versions = {
 vs_version = vs_versions[os.environ.get('VisualStudioVersion', '14.0')]
 toolset = vs_version['toolset']
 vs_version = vs_version['version']
-vs_install_dir = os.path.abspath(os.path.join(os.environ['VCINSTALLDIR'], os.pardir))
 
-env = os.environ.copy()
-env['SKIP_V8_GYP_ENV'] = '1'
-env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-env['GYP_MSVS_VERSION'] = vs_version
-env['GYP_MSVS_OVERRIDE_PATH'] = vs_install_dir
-
-#  old VC build tools?
+#  VC build tools
 vc_tools_install_dir = os.environ.get('VCToolsInstallDir')
 if vc_tools_install_dir:
 	vs_install_dir = vc_tools_install_dir
+else:
+	vs_install_dir = os.path.abspath(os.path.join(os.environ['VCINSTALLDIR'], os.pardir))
+
 vc_tools_version = os.environ.get('VCToolsVersion')
 if vc_tools_version:
 	vs_version = vc_tools_version
 	toolset = 'v' + vs_version.replace('.', '')[:3]
 
+
+env = os.environ.copy()
+env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
 
 if args.XP_TOOLSET:
 	if toolset.startswith('v142'):
