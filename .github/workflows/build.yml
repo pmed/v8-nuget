@@ -21,4 +21,4 @@ jobs:
       with:
         toolset: '14.2'
     - name: Build
-      run: python2 build.py
+      run: python2 build.py --version 8.4 --no-clang
