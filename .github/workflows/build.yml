@@ -30,9 +30,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: packages-8.4-${{ matrix.platform }}-${{ matrix.lib }}
-        path: *.nupkg
-    - name: Publish
-      uses: nuget/setup-nuget@v1
-      with:
-        nuget-api-key: ${{ secrets.NuGetAPIKey }}
-      run: nuget push *.nupkg 
+        path: '*.nupkg'
