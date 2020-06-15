@@ -1,0 +1,24 @@
+name: Build V8  
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Setup Python2
+      uses: actions/setup-python@v2
+      with:
+        python-version: '2.x'
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.0.0
+      with:
+        vs-version: '16.6'
+    - name: Build
+      run: python2 build.py
