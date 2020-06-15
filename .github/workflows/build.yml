@@ -9,7 +9,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        platform: ['x64', 'x86]
+        platform: ['x64', 'x86']
         lib: ['shared', 'monolith']
     steps:
     - name: Checkout
