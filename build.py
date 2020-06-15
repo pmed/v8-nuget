@@ -12,7 +12,6 @@ import shutil
 
 BIN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin')
 GN_OPTIONS = {
-	'is_component_build': True,
 	'treat_warnings_as_errors' : False,
 	'fatal_linker_warnings' : False,
 	'use_jumbo_build' : True, # removed in V8 version 8.1
@@ -22,7 +21,7 @@ GN_OPTIONS = {
 	'v8_enable_verify_heap' : False, # to fix VC++ Linker error in Debug configuratons
 	#'v8_optimized_debug' : False,
 	#'v8_use_snapshot' : True,
-	#'v8_use_external_startup_data' : False,
+	'v8_use_external_startup_data' : False,
 	#'v8_enable_handle_zapping' : True,
 	#'v8_check_header_includes' : True,
 	#'v8_win64_unwinding_info' : False,
@@ -52,6 +51,12 @@ arg_parser.add_argument('--config',
 	choices=['Debug', 'Release'],
 	default=os.environ.get('CONFIGURATION', ['Debug', 'Release']),
 	help='Target configrations')
+arg_parser.add_argument('--libs',
+	dest='LIBS',
+	nargs='+',
+	choices=['shared', 'monolith'],
+	default=os.environ.get('LIBS', ['shared', 'monolith']),
+	help='Target libraries')
 arg_parser.add_argument('--xp',
 	dest='XP_TOOLSET',
 	action='store_true',
@@ -79,7 +84,6 @@ arg_parser.add_argument('--gn-option',
 
 args = arg_parser.parse_args()
 
-args.GN_OPTIONS['is_clang'] = args.USE_CLANG
 
 # Use only Last Known Good Revision branches
 if args.V8_VERSION.count('.') < 2 and all(x.isdigit() for x in args.V8_VERSION.split('.')):
@@ -237,46 +241,56 @@ def build(target, options, env, out_dir):
 	subprocess.check_call([args.NINJA, '-C', out_dir, target], cwd='v8', env=env)
 
 
+PACKAGES = {
+	'shared' : ['v8', 'v8.redist', 'v8.symbols'],
+	'monolith' : ['v8.monolith'],
+}
+
 ## Build V8
 for arch in args.PLATFORMS:
-#	if 'CLANG_TOOLSET' in env:
-#		prefix = 'amd64' if arch == 'x64' else arch
-#		env['PATH'] = os.path.join(vs_install_dir, r'VC\ClangC2\bin', prefix, prefix) + ';' + env.get('PATH', '')
 	arch = arch.lower()
-	cpp_defines = ''
-	for conf in args.CONFIGURATIONS:
-		### Generate build.ninja files in out.gn/V8_VERSION/toolset/arch/conf directory
-		out_dir = os.path.join('out.gn', args.V8_VERSION, toolset, arch, conf)
-		options = args.GN_OPTIONS
-		options['is_debug'] = (conf == 'Debug')
-		options['target_cpu'] = arch
-		build('v8', options, env, out_dir)
-		cpp_defines += """
-<PreprocessorDefinitions Condition="'$(Configuration)' == '{conf}'">{defines};%(PreprocessorDefinitions)</PreprocessorDefinitions>
-""".format(conf=conf, defines=cpp_defines_from_v8_json_build_config(os.path.join('v8', out_dir, 'v8_build_config.json')))
+	for lib in args.LIBS:
+		cpp_defines = ''
+		build_monolith = (lib == 'monolith')
+		for conf in args.CONFIGURATIONS:
+			### Generate build.ninja files in out.gn/V8_VERSION/toolset/arch/conf/lib directory
+			out_dir = os.path.join('out.gn', args.V8_VERSION, toolset, arch, conf, lib)
+			options = args.GN_OPTIONS
+			options['is_debug'] = options['is_full_debug'] = options['enable_iterator_debugging'] = (conf == 'Debug')
+			options['target_cpu'] = arch
+			options['is_clang'] = args.USE_CLANG
+			options['is_component_build'] = not build_monolith
+			options['v8_monolithic'] = build_monolith
+			target = 'v8'
+			if build_monolith:
+				target += '_monolith'
+			build(target, options, env, out_dir)
+			cpp_defines += """
+	<PreprocessorDefinitions Condition="'$(Configuration)' == '{conf}'">{defines};%(PreprocessorDefinitions)</PreprocessorDefinitions>
+	""".format(conf=conf, defines=cpp_defines_from_v8_json_build_config(os.path.join('v8', out_dir, 'v8_build_config.json')))
 
-	if arch == 'x86':
-		platform = "('$(Platform)' == 'x86' Or '$(Platform)' == 'Win32')"
-	else:
-		platform = "'$(Platform)' == '{}'".format(arch)
-	condition = "'$(PlatformToolset)' == '{}' And {}".format(toolset, platform)
+		if arch == 'x86':
+			platform = "('$(Platform)' == 'x86' Or '$(Platform)' == 'Win32')"
+		else:
+			platform = "'$(Platform)' == '{}'".format(arch)
+		condition = "'$(PlatformToolset)' == '{}' And {}".format(toolset, platform)
 
-	## Build NuGet packages
-	for name in ['v8', 'v8.redist', 'v8.symbols']:
-		## Generate property sheets with specific conditions
-		props = open('nuget/{}.props'.format(name)).read()
-		props = props.replace('$Condition$', condition)
-		if cpp_defines:
-			 props = props.replace('<PreprocessorDefinitions />', cpp_defines)
-		open('nuget/{}-{}-{}.props'.format(name, toolset, arch), 'w+').write(props)
+		## Build NuGet packages
+		for name in PACKAGES[lib]:
+			## Generate property sheets with specific conditions
+			props = open('nuget/{}.props'.format(name)).read()
+			props = props.replace('$Condition$', condition)
+			if cpp_defines:
+				 props = props.replace('<PreprocessorDefinitions />', cpp_defines)
+			open('nuget/{}-{}-{}.props'.format(name, toolset, arch), 'w+').write(props)
 
-		nuspec = name + '.nuspec'
-		print('NuGet pack {} for V8 {} {} {}'.format(nuspec, version, toolset, arch))
-		nuget_args = [
-			'-NoPackageAnalysis',
-			'-Version', version,
-			'-Properties', 'Platform='+arch+';PlatformToolset='+toolset+';BuildVersion='+V8_VERSION,
-			'-OutputDirectory', '..'
-		]
-		subprocess.check_call(['nuget', 'pack', nuspec] + nuget_args, cwd='nuget')
-		os.remove('nuget/{}-{}-{}.props'.format(name, toolset, arch))
+			nuspec = name + '.nuspec'
+			print('NuGet pack {} for V8 {} {} {}'.format(nuspec, version, toolset, arch))
+			nuget_args = [
+				'-NoPackageAnalysis',
+				'-Version', version,
+				'-Properties', 'Platform='+arch+';PlatformToolset='+toolset+';BuildVersion='+args.V8_VERSION,
+				'-OutputDirectory', '..'
+			]
+			subprocess.check_call(['nuget', 'pack', nuspec] + nuget_args, cwd='nuget')
+			os.remove('nuget/{}-{}-{}.props'.format(name, toolset, arch))
