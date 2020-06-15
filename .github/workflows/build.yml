@@ -31,3 +31,12 @@ jobs:
       with:
         name: packages-8.4-${{ matrix.platform }}-${{ matrix.lib }}
         path: '*.nupkg'
+
+    - name: Setup .NET environment
+      uses: actions/setup-dotnet@v1
+      with:
+        source-url: https://nuget.pkg.github.com/pmed/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    - name: Push to GitHub package registry
+      run: dotnet nuget push *.nupkg
