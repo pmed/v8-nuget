@@ -90,6 +90,9 @@ if args.V8_VERSION.count('.') < 2 and all(x.isdigit() for x in args.V8_VERSION.s
 	args.V8_VERSION += '-lkgr' 
 
 
+print('Parsed args: ', args)
+
+
 def git_fetch(url, target):
 	if isinstance(url, dict):
 		#url = url['url']
