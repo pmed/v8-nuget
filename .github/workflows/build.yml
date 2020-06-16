@@ -23,8 +23,8 @@ jobs:
     - name: Setup NuGet
       uses: nuget/setup-nuget@v1
       with:
-        nuget-api-key-source: https://nuget.pkg.github.com/pmed/index.json
-        nuget-api-key: ${{ secrets.GITHUB_TOKEN }}
+        nuget-api-key-source: https://api.nuget.org/v3/index.json
+        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
     - name: Enable Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1.3.0
       with:
@@ -34,6 +34,8 @@ jobs:
     - name: Store packages
       uses: actions/upload-artifact@v2
       with:
+        name: '8.4-${{ matrix.platform }}-${{ matrix.lib }'
         path: '*.nupkg'
+      continue-on-error: true
     - name: Push to GitHub package registry
-      run: dotnet nuget push *.nupkg --source https://nuget.pkg.github.com/pmed/index.json --skip-duplicate
+      run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate
