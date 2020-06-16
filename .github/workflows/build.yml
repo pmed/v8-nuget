@@ -34,7 +34,7 @@ jobs:
     - name: Store packages
       uses: actions/upload-artifact@v2
       with:
-        name: '8.4-${{ matrix.platform }}-${{ matrix.lib }'
+        name: '8.4-${{ matrix.platform }}-${{ matrix.lib }}'
         path: '*.nupkg'
       continue-on-error: true
     - name: Push to GitHub package registry
