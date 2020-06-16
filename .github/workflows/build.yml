@@ -34,7 +34,6 @@ jobs:
     - name: Store packages
       uses: actions/upload-artifact@v2
       with:
-        name: packages-8.4-${{ matrix.platform }}-${{ matrix.lib }}
         path: '*.nupkg'
     - name: Push to GitHub package registry
       run: dotnet nuget push *.nupkg
