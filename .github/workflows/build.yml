@@ -20,12 +20,11 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '2.x'
-    - name: Setup .NET environment
-      uses: actions/setup-dotnet@v1
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
       with:
-        source-url: https://nuget.pkg.github.com/pmed/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        nuget-api-key-source: https://nuget.pkg.github.com/pmed/index.json
+        nuget-api-key: ${{ secrets.GITHUB_TOKEN }}
     - name: Enable Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1.3.0
       with:
