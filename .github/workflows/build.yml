@@ -36,4 +36,4 @@ jobs:
       with:
         path: '*.nupkg'
     - name: Push to GitHub package registry
-      run: dotnet nuget push *.nupkg
+      run: dotnet nuget push *.nupkg --source https://nuget.pkg.github.com/pmed/index.json --skip-duplicate
