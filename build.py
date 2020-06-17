@@ -16,8 +16,8 @@ GN_OPTIONS = {
 	'fatal_linker_warnings' : False,
 	'use_jumbo_build' : True, # removed in V8 version 8.1
 	#'symbol_level' : 1,
-	'v8_enable_fast_mksnapshot' : True,
-	'v8_enable_fast_torque' : True,
+	'v8_enable_fast_mksnapshot' : False,
+	'v8_enable_fast_torque' : False,
 	'v8_enable_verify_heap' : False, # to fix VC++ Linker error in Debug configuratons
 	#'v8_optimized_debug' : False,
 	#'v8_use_snapshot' : True,
