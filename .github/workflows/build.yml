@@ -9,7 +9,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        version: ['8.4'] #, '8.3']
+        version: ['8.4', '8.5']
         platform: ['x64', 'x86']
         lib: ['shared'] #, 'monolith']
     steps:
