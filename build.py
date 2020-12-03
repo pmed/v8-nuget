@@ -213,6 +213,10 @@ shutil.copy(args.GN, 'v8/buildtools/win')
 if os.path.isfile('v8/build/util/lastchange.py'):
 	subprocess.check_call([sys.executable, 'lastchange.py', '-o', 'LASTCHANGE'], cwd='v8/build/util', env=env)
 
+if not os.path.isfile('v8/build/config/gclient_args.gni'):
+	with open('v8/build/config/gclient_args.gni', 'a') as f:
+		f.write('declare_args() { checkout_google_benchmark = false }\n')
+
 def cpp_defines_from_v8_json_build_config(filename):
 	json_file = open(filename)
 	config = json.load(json_file)
