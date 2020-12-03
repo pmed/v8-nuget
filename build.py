@@ -149,9 +149,12 @@ if args.USE_CLANG:
 Var = lambda name: vars[name]
 deps = open('v8/DEPS').read()
 exec(deps)
-for dep in deps:
-	if dep in required_deps:
-		git_fetch(deps[dep], dep)
+
+for name, url in deps.items():
+	if not name.startswith('v8'):
+		name = 'v8/' + name
+	if name in required_deps:
+		git_fetch(url, name)
 
 ### Get v8 version from defines in v8-version.h
 v8_version_h = open('v8/include/v8-version.h').read()
