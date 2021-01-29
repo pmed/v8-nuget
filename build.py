@@ -30,6 +30,22 @@ GN_OPTIONS = {
 	'use_custom_libcxx' : False,
 }
 
+def parse_to_dict(action, parser, namespace, values, option_string):
+	dict = getattr(namespace, action.dest, {})
+	for item in values:
+		key, value = item.split('=', 1)
+		# distutils.util.strtobool treats 0/1 also as bool values
+		try:
+			dict[key] = int(value)
+		except:
+			if value.lower() in ['true', 'yes', 'on']:
+				dict[key] = True
+			elif value.lower() in ['false', 'no', 'off']:
+				dict[key] = False
+			else:
+				dict[key] = value
+	setattr(namespace, action.dest, dict)
+
 arg_parser = argparse.ArgumentParser(description='Build V8 from sources', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 arg_parser.add_argument('--url',
 	dest='V8_URL',
@@ -78,7 +94,7 @@ arg_parser.add_argument('--ninja',
 arg_parser.add_argument('--gn-option',
 	dest='GN_OPTIONS',
 	nargs="+", metavar="KEY=VAL",
-	action=type('', (argparse.Action, ), dict(__call__ = lambda a, p, n, v, o: getattr(n, a.dest).update(dict([kv.split('=') for kv in v])))),
+	action=type('', (argparse.Action, ), dict(__call__ = parse_to_dict)),
 	default=GN_OPTIONS,
 	help='Add gn option')
 
