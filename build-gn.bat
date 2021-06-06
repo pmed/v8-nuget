@@ -1,8 +1,5 @@
-: Build GN in the V8 source tree
-pushd v8
-git clone https://chromium.googlesource.com/chromium/src/tools/gn tools/gn
-git clone https://chromium.googlesource.com/chromium/src/base base
-cd tools\gn
-bootstrap\bootstrap.py -s
-echo Result in %cd%\out\Release
-popd
+: Build GN in the project root
+git clone https://gn.googlesource.com/gn gn
+python gn\build\gen.py
+ninja -C gn\out gn.exe
+copy gn\out\gn.exe bin\
