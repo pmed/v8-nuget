@@ -182,6 +182,7 @@ vs_versions = {
 	'14.0': { 'version': '2015', 'toolset': 'v140' },
 	'15.0': { 'version': '2017', 'toolset': 'v141' },
 	'16.0': { 'version': '2019', 'toolset': 'v142' },
+	'17.0': { 'version': '2022', 'toolset': 'v143' },
 }
 vs_version = vs_versions[os.environ.get('VisualStudioVersion', '14.0')]
 toolset = vs_version['toolset']
