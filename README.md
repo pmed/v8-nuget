@@ -5,6 +5,8 @@ libraries required to embed the V8 JavaScript engine into a C++ project.
 
 | Package                     | Version
 |-----------------------------|----------------------------------------------------------------------------------------------------------------------|
+|V8 x64 for Visual Studio 2022|[![NuGet](https://img.shields.io/nuget/v/v8-v143-x64.svg)](https://www.nuget.org/packages/v8-v143-x64/)|
+|V8 x86 for Visual Studio 2022|[![NuGet](https://img.shields.io/nuget/v/v8-v143-x86.svg)](https://www.nuget.org/packages/v8-v143-x86/)|
 |V8 x64 for Visual Studio 2019|[![NuGet](https://img.shields.io/nuget/v/v8-v142-x64.svg)](https://www.nuget.org/packages/v8-v142-x64/)|
 |V8 x86 for Visual Studio 2019|[![NuGet](https://img.shields.io/nuget/v/v8-v142-x86.svg)](https://www.nuget.org/packages/v8-v142-x86/)|
 |V8 x64 for Visual Studio 2017|[![NuGet](https://img.shields.io/nuget/v/v8-v141-x64.svg)](https://www.nuget.org/packages/v8-v141-x64/)|
