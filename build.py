@@ -111,9 +111,7 @@ print('Parsed args: ', args)
 
 def git_fetch(url, target):
 	if isinstance(url, dict):
-		#url = url['url']
-		#if url['condition'] == 'checkut_android':
-		return
+		url = url['url']
 	parts = url.split('.git@')
 	if len(parts) > 1:
 		url = parts[0] + '.git'
@@ -263,7 +261,7 @@ def build(target, options, env, out_dir):
 	for k, v in options.items():
 		q = '"' if isinstance(v, str) else ''
 		gn_args.append(k + '=' + q + str(v) + q)
-	subprocess.check_call([args.GN, 'gen', out_dir, '--args=' + ' '.join(gn_args).lower()], cwd='v8', env=env)
+	subprocess.check_call([args.GN, 'gen', '--ninja-executable=' + args.NINJA, out_dir, '--args=' + ' '.join(gn_args).lower()], cwd='v8', env=env)
 	subprocess.check_call([args.NINJA, '-C', out_dir, target], cwd='v8', env=env)
 
 
