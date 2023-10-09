@@ -9,6 +9,8 @@ import string
 import sys
 import subprocess
 import shutil
+import urllib.request
+import tarfile
 
 BIN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin')
 GN_OPTIONS = {
@@ -47,6 +49,16 @@ def parse_to_dict(action, parser, namespace, values, option_string):
 	setattr(namespace, action.dest, dict)
 
 arg_parser = argparse.ArgumentParser(description='Build V8 from sources', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+arg_parser.add_argument('--no-fetch',
+	dest='NOFETCH',
+	action='store_true',
+	default=False,
+	help='Do not fetch sources')
+arg_parser.add_argument('--no-git',
+	dest='NOGIT',
+	action='store_true',
+	default=False,
+	help='Download tarball instead of Git fetch')
 arg_parser.add_argument('--url',
 	dest='V8_URL',
 	default='https://chromium.googlesource.com/v8/v8.git',
@@ -109,7 +121,18 @@ if args.V8_VERSION.count('.') < 2 and all(x.isdigit() for x in args.V8_VERSION.s
 print('Parsed args: ', args)
 
 
+def is_sha1(ref):
+	if len(ref) == 40:
+		try:
+			sha1 = int(ref, 16)
+			return True
+		except:
+			pass
+	return False
+
+
 def git_fetch(url, target):
+	# input url like: https://chromium.googlesource.com/v8/v8.git@ref
 	if isinstance(url, dict):
 		url = url['url']
 	parts = url.split('.git@')
@@ -118,17 +141,30 @@ def git_fetch(url, target):
 		ref = parts[1]
 	else:
 		ref = 'HEAD'
-	print('Fetch {}@{} into {}'.format(url, ref, target))
 
-	if not os.path.isdir(os.path.join(target, '.git')):
-		subprocess.check_call(['git', 'init', target])
-	fetch_args = ['git', 'fetch', '--depth=1', '--update-shallow', '--update-head-ok', '--verbose', url, ref]
-	if subprocess.call(fetch_args, cwd=target) != 0:
-		print('RETRY: {}'.format(target))
-		shutil.rmtree(target, ignore_errors=True)
-		subprocess.check_call(['git', 'init', target])
-		subprocess.check_call(fetch_args, cwd=target)
-	subprocess.check_call(['git', 'checkout', '-f', '-B', 'Branch_'+ref, 'FETCH_HEAD'], cwd=target)
+	if args.NOGIT:
+		# tarball urls:
+		# https://chromium.googlesource.com/chromium/src/build.git/+archive/5c9250c64c70a2f861a435158b57a6d43cd2e7b7.tar.gz
+		# https://chromium.googlesource.com/v8/v8.git/+archive/refs/heads/10.6-lkgr.tar.gz
+		url += '/+archive/' + ('refs/heads/' if not is_sha1(ref) else '') + ref + '.tar.gz'
+	
+		print(f'Download {url} into {target}')
+		with urllib.request.urlopen(url) as stream:
+			with tarfile.open(fileobj=stream, mode="r|gz") as tar:
+				tar.extractall(path=target)
+	else:
+		print('Git fetch {}@{} into {}'.format(url, ref, target))
+
+		if not os.path.isdir(os.path.join(target, '.git')):
+			subprocess.check_call(['git', 'init', target])
+		fetch_args = ['git', 'fetch', '--depth=1', '--update-shallow', '--update-head-ok', '--verbose', url, ref]
+		if subprocess.call(fetch_args, cwd=target) != 0:
+			print('RETRY: {}'.format(target))
+			shutil.rmtree(target, ignore_errors=True)
+			subprocess.check_call(['git', 'init', target])
+			subprocess.check_call(fetch_args, cwd=target)
+		subprocess.check_call(['git', 'checkout', '-f', '-B', 'Branch_'+ref, 'FETCH_HEAD'], cwd=target)
+
 
 def rmtree(dir):
 	if os.path.isdir(dir):
@@ -144,33 +180,36 @@ def copytree(src_dir, dest_dir):
 # __main__
 
 ## Fetch V8 sources
-git_fetch(args.V8_URL+'@'+args.V8_VERSION, 'v8')
+if args.NOFETCH and os.path.exists('v8'):
+	print('Skip fetching, v8 already exists')
+else:
+	git_fetch(args.V8_URL+'@'+args.V8_VERSION, 'v8')
 
-## Fetch only required V8 source dependencies
-required_deps = [
-	'v8/build',
-	'v8/third_party/icu',
-	'v8/base/trace_event/common',
-	'v8/third_party/jinja2',
-	'v8/third_party/markupsafe',
-	'v8/third_party/googletest/src',
-	'v8/third_party/zlib',
-	'v8/third_party/abseil-cpp',
-]
+	## Fetch only required V8 source dependencies
+	required_deps = [
+		'v8/build',
+		'v8/third_party/icu',
+		'v8/base/trace_event/common',
+		'v8/third_party/jinja2',
+		'v8/third_party/markupsafe',
+		'v8/third_party/googletest/src',
+		'v8/third_party/zlib',
+		'v8/third_party/abseil-cpp',
+	]
 
-if args.USE_CLANG:
-	required_deps.append('v8/tools/clang')
+	if args.USE_CLANG:
+		required_deps.append('v8/tools/clang')
 
-Var = lambda name: vars[name]
-Str = lambda str: str
-deps = open('v8/DEPS').read()
-exec(deps)
+	Var = lambda name: vars[name]
+	Str = lambda str: str
+	deps = open('v8/DEPS').read()
+	exec(deps)
 
-for name, url in deps.items():
-	if not name.startswith('v8'):
-		name = 'v8/' + name
-	if name in required_deps:
-		git_fetch(url, name)
+	for name, url in deps.items():
+		if not name.startswith('v8'):
+			name = 'v8/' + name
+		if name in required_deps:
+			git_fetch(url, name)
 
 ### Get v8 version from defines in v8-version.h
 v8_version_h = open('v8/include/v8-version.h').read()
