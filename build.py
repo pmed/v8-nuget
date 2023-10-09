@@ -155,12 +155,14 @@ required_deps = [
 	'v8/third_party/markupsafe',
 	'v8/third_party/googletest/src',
 	'v8/third_party/zlib',
+	'v8/third_party/abseil-cpp',
 ]
 
 if args.USE_CLANG:
 	required_deps.append('v8/tools/clang')
 
 Var = lambda name: vars[name]
+Str = lambda str: str
 deps = open('v8/DEPS').read()
 exec(deps)
 
