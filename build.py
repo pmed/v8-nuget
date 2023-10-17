@@ -281,7 +281,10 @@ def cpp_defines_from_v8_json_build_config(filename):
 	if config.get('is_debug', False) or config.get('is_full_debug', False) or config.get('v8_enable_v8_checks', False):
 		defines.add('V8_ENABLE_CHECKS')
 
-	if config.get('v8_enable_pointer_compression', False):
+	if config.get('v8_enable_sandbox', False) or config.get('sandbox', False):
+		defines.add('V8_ENABLE_SANDBOX')
+
+	if config.get('v8_enable_pointer_compression', False) or config.get('pointer_compression', False):
 		defines.add('V8_COMPRESS_POINTERS')
 		defines.add('V8_31BIT_SMIS_ON_64BIT_ARCH')
 
