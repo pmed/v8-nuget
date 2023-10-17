@@ -18,11 +18,13 @@
     <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Debug\shared\icu*.dat" target="lib\Debug" />
     <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Debug\shared\*_blob.bin" target="lib\Debug" />
     <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Debug\shared\zlib*.dll" target="lib\Debug" />
+    <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Debug\shared\third_party_*.dll" target="lib\Debug" />
     <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Release\shared\v8*.dll" target="lib\Release" />
     <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Release\shared\icu*.dll" target="lib\Release" />
     <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Release\shared\icu*.dat" target="lib\Release" />
     <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Release\shared\*_blob.bin" target="lib\Release" />
     <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Release\shared\zlib*.dll" target="lib\Release" />
+    <file src="..\v8\out.gn\$BuildVersion$\$PlatformToolset$\$Platform$\Release\shared\third_party_*.dll" target="lib\Release" />
     <file src="v8.redist-$PlatformToolset$-$Platform$.props" target="build\native" />
     <file src="..\readme.md" target="" />
   </files>
