@@ -15,6 +15,7 @@ jobs:
       matrix:
         platform: ['x64', 'x86']
         lib: ['shared'] #, 'monolith']
+    name: Build V8 ${{  github.event.inputs.version }} ${{ matrix.platform }}
     steps:
     - name: Checkout
       uses: actions/checkout@v2
