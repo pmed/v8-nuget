@@ -59,6 +59,11 @@ arg_parser.add_argument('--no-git',
 	action='store_true',
 	default=False,
 	help='Download tarball instead of Git fetch')
+arg_parser.add_argument('--read-version',
+	dest='READ_VERSION',
+	action='store_true',
+	default=False,
+	help='Read actual V8 version from v8-version.h , do no build')
 arg_parser.add_argument('--url',
 	dest='V8_URL',
 	default='https://chromium.googlesource.com/v8/v8.git',
@@ -215,6 +220,9 @@ else:
 v8_version_h = open('v8/include/v8-version.h').read()
 version = '.'.join(map(lambda name: re.search(r'^#define\s+'+name+r'\s+(\d+)$', v8_version_h, re.M).group(1), \
 	['V8_MAJOR_VERSION', 'V8_MINOR_VERSION', 'V8_BUILD_NUMBER', 'V8_PATCH_LEVEL']))
+print(f'V8 {version}')
+if args.READ_VERSION:
+	sys.exit(0)
 
 vs_versions = {
 	'12.0': { 'version': '2013', 'toolset': 'v120' },
@@ -255,7 +263,6 @@ subprocess.check_call([sys.executable, 'vs_toolchain.py', 'update'], cwd='v8/bui
 if args.USE_CLANG:
 	subprocess.check_call([sys.executable, 'update.py'], cwd='v8/tools/clang/scripts', env=env)
 
-print('V8 {}'.format(version))
 print('Visual Studio {} in {}'.format(vs_version, vs_install_dir))
 print('C++ Toolset {}'.format(toolset))
 
