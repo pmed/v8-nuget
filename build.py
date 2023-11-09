@@ -158,13 +158,13 @@ def git_fetch(url, target):
 			with tarfile.open(fileobj=stream, mode="r|gz") as tar:
 				tar.extractall(path=target)
 	else:
-		print('Git fetch {}@{} into {}'.format(url, ref, target))
+		print(f'Git fetch {url}@{ref} into {target}')
 
 		if not os.path.isdir(os.path.join(target, '.git')):
 			subprocess.check_call(['git', 'init', target])
 		fetch_args = ['git', 'fetch', '--depth=1', '--update-shallow', '--update-head-ok', '--verbose', url, ref]
 		if subprocess.call(fetch_args, cwd=target) != 0:
-			print('RETRY: {}'.format(target))
+			print(f'RETRY: {target}')
 			shutil.rmtree(target, ignore_errors=True)
 			subprocess.check_call(['git', 'init', target])
 			subprocess.check_call(fetch_args, cwd=target)
@@ -263,8 +263,8 @@ subprocess.check_call([sys.executable, 'vs_toolchain.py', 'update'], cwd='v8/bui
 if args.USE_CLANG:
 	subprocess.check_call([sys.executable, 'update.py'], cwd='v8/tools/clang/scripts', env=env)
 
-print('Visual Studio {} in {}'.format(vs_version, vs_install_dir))
-print('C++ Toolset {}'.format(toolset))
+print(f'Visual Studio {vs_version} in {vs_install_dir}')
+print(f'C++ Toolset {toolset}')
 
 # Copy GN to the V8 buildtools in order to work v8gen script
 if not os.path.exists('v8/buildtools/win'):
@@ -347,20 +347,20 @@ for arch in args.PLATFORMS:
 		if arch == 'x86':
 			platform = "('$(Platform)' == 'x86' Or '$(Platform)' == 'Win32')"
 		else:
-			platform = "'$(Platform)' == '{}'".format(arch)
-		condition = "'$(PlatformToolset)' == '{}' And {}".format(toolset, platform)
+			platform = f"'$(Platform)' == '{arch}'"
+		condition = f"'$(PlatformToolset)' == '{toolset}' And {platform}"
 
 		## Build NuGet packages
 		for name in PACKAGES[lib]:
 			## Generate property sheets with specific conditions
-			props = open('nuget/{}.props'.format(name)).read()
+			props = open(f'nuget/{name}.props').read()
 			props = props.replace('$Condition$', condition)
 			if cpp_defines:
 				 props = props.replace('<PreprocessorDefinitions />', cpp_defines)
-			open('nuget/{}-{}-{}.props'.format(name, toolset, arch), 'w+').write(props)
+			open(f'nuget/{name}-{toolset}-{arch}.props', 'w+').write(props)
 
 			nuspec = name + '.nuspec'
-			print('NuGet pack {} for V8 {} {} {}'.format(nuspec, version, toolset, arch))
+			print(f'NuGet pack {nuspec} for V8 {version} {toolset} {arch}')
 			nuget_args = [
 				'-NoPackageAnalysis',
 				'-Version', version,
@@ -368,4 +368,4 @@ for arch in args.PLATFORMS:
 				'-OutputDirectory', '..'
 			]
 			subprocess.check_call(['nuget', 'pack', nuspec] + nuget_args, cwd='nuget')
-			os.remove('nuget/{}-{}-{}.props'.format(name, toolset, arch))
+			os.remove(f'nuget/{name}-{toolset}-{arch}.props')
