@@ -35,6 +35,7 @@ where
     * `v140` - for Visual Studio 2015
     * `v141` - for Visual Studio 2017
     * `v142` - for Visual Studio 2019
+    * `v143` - for Visual Studio 2022
     * `v120_xp` - for Visual Studio 2013 XP platform toolset
     * `v140_xp` - for Visual Studio 2015 XP platform toolset
     * `v141_xp` - for Visual Studio 2017 XP platform toolset
@@ -65,19 +66,27 @@ This section is mostly for the package maintainers who wants to update V8.
 
 Tools required to build V8 NuGet package on Windows:
 
-  * Visual C++ toolset (version >=2013)
-  * Python 2.X
-  * Git
+  * Visual C++ toolset (version >=2022)
+  * Python 3.x
+  * Git >= 1.9
   * NuGet (https://dist.nuget.org/index.html)
 
 To build V8 and make NuGet packages:
 
   1. Run `build.py` with optional command-line arguments.
   2. Publish `nuget/*.nupkg` files after successful build.
-  
+
 Build script `build.py` supports command-line arguments to specify package build options:
 
-  1. V8 version branch/tag name (or `V8_VERSION` environment variable), default is `lkgr` branch
-  2. Target platform (or `PLATFORM` evnironment variable), default is [`x86`, `x64`]
-  3. Configuration (or `CONFIGURATION` environment variable), default is [`Debug`, `Release`]
-  4. XP platofrm toolset usage flag (or `XP` environment variable), default is not set
+  1. V8 version branch/tag name `--version`, default is `lkgr` branch (last known good revision)
+  2. Platform `--platform`, default are both [`x86`, `x64`]
+  3. Configuration `--config`, default are both [`Debug`, `Release`]
+  4. Libraries kind `--libs`, default are both [`shared`, `monolith`] (i.e. dll and static libs)
+  5. Additional V8 gn options `--gn-option` in key=value format
+  6. Print all available options with `--help` switch
+
+For example, to build V8 version 12.8 for x64 dlls, both debug and release run it as:
+
+```
+python3 build.py --version=12.8 --platform=x64 --libs=shared
+```
