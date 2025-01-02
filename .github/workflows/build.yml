@@ -18,15 +18,13 @@ jobs:
     name: Build V8 ${{  github.event.inputs.version }} ${{ matrix.platform }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+      uses: actions/checkout@v4
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
+        python-version: '3'
     - name: Setup NuGet
-      uses: nuget/setup-nuget@v1
+      uses: nuget/setup-nuget@v2
       with:
         nuget-api-key-source: https://api.nuget.org/v3/index.json
         nuget-api-key: ${{ secrets.NUGET_API_KEY }}
@@ -35,7 +33,7 @@ jobs:
       with:
         vsversion: '2022'
     - name: Build
-      run: python build.py --version=${{  github.event.inputs.version }} --platform=${{ matrix.platform }} --libs=${{ matrix.lib }} --use-clang
+      run: python build.py --version=${{ github.event.inputs.version }} --platform=${{ matrix.platform }} --libs=${{ matrix.lib }}
     #- name: Store packages
     #  uses: actions/upload-artifact@v2
     #  with:
