@@ -116,7 +116,10 @@ env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
 
 # Fetch V8 and dependencies
 print('Fetching v8')
-subprocess.check_call([os.path.join('depot_tools', 'gclient'), 'sync', '--no-history', '--shallow', '--gclientfile=v8.gclient', '--revision=' + args.V8_VERSION], env=env, shell=True)
+subprocess.check_call([os.path.join('depot_tools', 'gclient'), 'sync',
+	'--no-history', '--shallow', '--delete_unversioned_trees', '--reset',
+	'--gclientfile=v8.gclient', '--revision=' + args.V8_VERSION],
+	env=env, shell=True)
 
 
 ### Get actual v8 version from defines in v8-version.h
