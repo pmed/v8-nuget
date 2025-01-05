@@ -133,13 +133,16 @@ def cpp_defines_from_v8_json_build_config(out_dir):
 	# TODO: use v8-gn.h instead
 
 	def read_json(filename):
+		filename = os.path.join(out_dir, filename)
 		result = dict()
 		if os.path.isfile(filename):
-			with open(os.path.join(out_dir, filename)) as file:
+			with open(filename) as file:
 				result = json.load(file)
 		return result
 
-	config = read_json('v8_build_config.json') | read_json('v8_features.json')
+	config = dict()
+	config.update(read_json('v8_build_config.json'))
+	config.update(read_json('v8_features.json'))
 
 	# see `enabled_external_v8_defines`, `enabled_external_cppgc_defines` in v8/BUILD.gn
 	enabled_external_v8_defines = {
@@ -148,9 +151,9 @@ def cpp_defines_from_v8_json_build_config(out_dir):
 		'v8_enable_v8_checks': 'V8_ENABLE_CHECKS',
 		'v8_enable_sandbox': 'V8_ENABLE_SANDBOX',
 		'sandbox': 'V8_ENABLE_SANDBOX',
-		'v8_enable_31bit_smis_on_64bit_arch': 'V8_31BIT_SMIS_ON_64BIT_ARCH',
 		'v8_enable_pointer_compression': ['V8_COMPRESS_POINTERS', 'V8_31BIT_SMIS_ON_64BIT_ARCH'],
 		'pointer_compression': ['V8_COMPRESS_POINTERS', 'V8_31BIT_SMIS_ON_64BIT_ARCH'],
+		'v8_enable_31bit_smis_on_64bit_arch': 'V8_31BIT_SMIS_ON_64BIT_ARCH',
 		'v8_enable_zone_compression': 'V8_COMPRESS_ZONES',
 		'v8_deprecation_warnings': 'V8_DEPRECATION_WARNINGS',
 		'v8_imminent_deprecation_warnings': 'V8_IMMINENT_DEPRECATION_WARNINGS',
@@ -173,7 +176,10 @@ def cpp_defines_from_v8_json_build_config(out_dir):
 	defines = set()
 	for name, value in enabled_external_v8_defines.items():
 		if config.get(name, False):
-			defines.add(value)
+			if isinstance(value, list):
+				defines.update(value)
+			else:
+				defines.add(value)
 	return ';'.join(defines)
 
 
