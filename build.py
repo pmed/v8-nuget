@@ -20,11 +20,11 @@ GN_OPTIONS = {
 	'v8_use_external_startup_data' : False,
 	#'v8_generate_external_defines_header': True, # TODO: enable it later
 	'is_clang': True,
-	'use_lld': False,
 	'use_custom_libcxx_for_host' : False,
 	'use_custom_libcxx' : False,
 	'treat_warnings_as_errors' : False,
 	'fatal_linker_warnings' : False,
+	'dcheck_always_on': False,
 }
 
 def parse_to_dict(action, parser, namespace, values, option_string):
@@ -299,8 +299,10 @@ for arch in args.PLATFORMS:
 			options = args.GN_OPTIONS
 			options['is_debug'] = (conf == 'Debug')
 			options['target_cpu'] = arch
-			options['is_component_build'] = (lib == 'shared')
-			options['v8_monolithic'] = (lib == 'monolith')
+			if lib == 'shared':
+				options['is_component_build'] = True
+			elif lib == 'monolith':
+				options['v8_monolithic'] = True
 
 			generate_abseil_exports(options, out_dir=out_dir, env=env)
 			build('v8' if lib == 'shared' else 'v8_monolith', options, work_dir='v8', out_dir=out_dir, env=env)
