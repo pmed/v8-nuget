@@ -12,10 +12,19 @@ import shutil
 import urllib.request
 import io
 import zipfile
+from pathlib import Path
+
 
 BIN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin')
 GN_OPTIONS = {
 	'v8_use_external_startup_data' : False,
+	#'v8_generate_external_defines_header': True, # TODO: enable it later
+	'is_clang': True,
+	'use_custom_libcxx_for_host' : False,
+	'use_custom_libcxx' : False,
+	'treat_warnings_as_errors' : False,
+	'fatal_linker_warnings' : False,
+	'dcheck_always_on': False,
 }
 
 def parse_to_dict(action, parser, namespace, values, option_string):
@@ -107,7 +116,10 @@ env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
 
 # Fetch V8 and dependencies
 print('Fetching v8')
-subprocess.check_call([os.path.join('depot_tools', 'gclient'), 'sync', '--no-history', '--shallow', '--gclientfile=v8.gclient', '--revision=' + args.V8_VERSION], env=env, shell=True)
+subprocess.check_call([os.path.join('depot_tools', 'gclient'), 'sync',
+	'--no-history', '--shallow', '--delete_unversioned_trees', '--reset',
+	'--gclientfile=v8.gclient', '--revision=' + args.V8_VERSION],
+	env=env, shell=True)
 
 
 ### Get actual v8 version from defines in v8-version.h
@@ -117,40 +129,158 @@ version = '.'.join(map(lambda name: re.search(r'^#define\s+'+name+r'\s+(\d+)$', 
 print(f'V8 {version}')
 
 
-def cpp_defines_from_v8_json_build_config(filename):
-	json_file = open(filename)
-	config = json.load(json_file)
+def cpp_defines_from_v8_json_build_config(out_dir):
+	# TODO: use v8-gn.h instead
+
+	def read_json(filename):
+		filename = os.path.join(out_dir, filename)
+		result = dict()
+		if os.path.isfile(filename):
+			with open(filename) as file:
+				result = json.load(file)
+		return result
+
+	config = dict()
+	config.update(read_json('v8_build_config.json'))
+	config.update(read_json('v8_features.json'))
+
+	# see `enabled_external_v8_defines`, `enabled_external_cppgc_defines` in v8/BUILD.gn
+	enabled_external_v8_defines = {
+		'is_debug': 'V8_ENABLE_CHECKS',
+		'is_full_debug': 'V8_ENABLE_CHECKS',
+		'v8_enable_v8_checks': 'V8_ENABLE_CHECKS',
+		'v8_enable_sandbox': 'V8_ENABLE_SANDBOX',
+		'sandbox': 'V8_ENABLE_SANDBOX',
+		'v8_enable_pointer_compression': ['V8_COMPRESS_POINTERS', 'V8_31BIT_SMIS_ON_64BIT_ARCH'],
+		'pointer_compression': ['V8_COMPRESS_POINTERS', 'V8_31BIT_SMIS_ON_64BIT_ARCH'],
+		'v8_enable_31bit_smis_on_64bit_arch': 'V8_31BIT_SMIS_ON_64BIT_ARCH',
+		'v8_enable_zone_compression': 'V8_COMPRESS_ZONES',
+		'v8_deprecation_warnings': 'V8_DEPRECATION_WARNINGS',
+		'v8_imminent_deprecation_warnings': 'V8_IMMINENT_DEPRECATION_WARNINGS',
+		'v8_use_perfetto': 'V8_USE_PERFETTO',
+		'v8_enable_map_packing': 'V8_MAP_PACKING',
+		'is_tsan': 'V8_IS_TSAN',
+		'v8_enable_conservative_stack_scanning': 'V8_ENABLE_CONSERVATIVE_STACK_SCANNING',
+		'v8_enable_direct_handle': 'V8_ENABLE_DIRECT_HANDLE',
+		'v8_shortcut_strings_in_minor_ms': 'V8_MINORMS_STRING_SHORTCUTTING',
+		'cppgc_enable_object_names': 'CPPGC_SUPPORTS_OBJECT_NAMES',
+		'cppgc_enable_caged_heap': 'CPPGC_CAGED_HEAP',
+		'cppgc_enable_young_generation': 'CPPGC_YOUNG_GENERATION',
+		'cppgc_enable_pointer_compression': 'CPPGC_POINTER_COMPRESSION',
+		'cppgc_enable_2gb_cage': 'CPPGC_2GB_CAGE',
+		'cppgc_enable_larger_cage': 'CPPGC_ENABLE_LARGER_CAGE',
+		'cppgc_enable_slim_write_barrier': 'CPPGC_SLIM_WRITE_BARRIER',
+
+	}
 
 	defines = set()
-	if config.get('is_debug', False) or config.get('is_full_debug', False) or config.get('v8_enable_v8_checks', False):
-		defines.add('V8_ENABLE_CHECKS')
-
-	if config.get('v8_enable_sandbox', False) or config.get('sandbox', False):
-		defines.add('V8_ENABLE_SANDBOX')
-
-	if config.get('v8_enable_pointer_compression', False) or config.get('pointer_compression', False):
-		defines.add('V8_COMPRESS_POINTERS')
-		defines.add('V8_31BIT_SMIS_ON_64BIT_ARCH')
-
-	if config.get('v8_enable_31bit_smis_on_64bit_arch', False):
-		defines.add('V8_31BIT_SMIS_ON_64BIT_ARCH')
-
-	if config.get('v8_deprecation_warnings', False):
-		defines.add('V8_DEPRECATION_WARNINGS')
-
-	if config.get('v8_imminent_deprecation_warnings', False):
-		defines.add('V8_IMMINENT_DEPRECATION_WARNINGS')
-
+	for name, value in enabled_external_v8_defines.items():
+		if config.get(name, False):
+			if isinstance(value, list):
+				defines.update(value)
+			else:
+				defines.add(value)
 	return ';'.join(defines)
 
 
-def build(target, options, env, out_dir):
+def build(target, options, work_dir, out_dir, env):
 	gn_args = list()
 	for k, v in options.items():
 		q = '"' if isinstance(v, str) else ''
 		gn_args.append(k + '=' + q + str(v) + q)
-	subprocess.check_call([os.path.join('buildtools', 'win', 'gn.exe'), 'gen', out_dir, '--args=' + ' '.join(gn_args).lower()], cwd='v8', env=env, shell=True)
-	subprocess.check_call([os.path.join('third_party', 'ninja', 'ninja.exe'), '-C', out_dir, target], cwd='v8', env=env, shell=True)
+
+	gn = os.path.join(os.getcwd(), 'v8', 'buildtools', 'win', 'gn.exe')
+	ninja = os.path.join(os.getcwd(), 'v8', 'third_party', 'ninja', 'ninja.exe')
+
+	subprocess.check_call([gn, 'gen', out_dir, '--args=' + ' '.join(gn_args).lower()], cwd=work_dir, env=env, shell=True)
+	subprocess.check_call([ninja, '-C', out_dir, target], cwd=work_dir, env=env, shell=True)
+
+
+def generate_abseil_exports(options, out_dir, env):
+	# See _GenerateDefFile in v8/third_party/abseil-cpp/generate_def_files.py
+	abseil = os.path.join('v8', 'third_party', 'abseil-cpp')
+	if not os.path.isdir(abseil) or not options.get('is_component_build') or not options.get('is_clang') or options.get('use_custom_libcxx_for_host', True) or options.get('use_custom_libcxx', True):
+		return
+
+	arch = options['target_cpu']
+	conf = 'dbg' if options['is_debug'] else 'rel'
+	symbols_def = os.path.join(abseil, f'symbols_{arch}_{conf}.def')
+	print (f'Updating {symbols_def}')
+
+	# Build abseil objects
+	absl_out_dir = os.path.join(out_dir, 'absl_component_deps')
+	build('third_party/abseil-cpp:absl_component_deps', options, work_dir=abseil, out_dir=absl_out_dir, env=env)
+	obj_dir=os.path.join(absl_out_dir, 'obj', 'third_party', 'abseil-cpp')
+
+	# Read abseil symbols from the obj files
+	files = list(Path(obj_dir).rglob('*.obj'))
+	print(f'Reading {len(files)} *.obj files in {obj_dir}')
+
+	# Typical dumpbin /symbol lines look like this:
+	# 04B 0000000C SECT14 notype       Static       | ?$S1@?1??SetCurrent
+	# ThreadIdentity@base_internal@absl@@YAXPAUThreadIdentity@12@P6AXPAX@Z@Z@4IA
+	#  (unsigned int `void __cdecl absl::base_internal::SetCurrentThreadIdentity...
+	# We need to start on "| ?" and end on the first " (" (stopping on space would
+	# also work).
+	# This regex is identical inside the () characters except for the ? after .*,
+	# which is needed to prevent greedily grabbing the undecorated version of the
+	# symbols.
+	ABSL_SYM_RE = r'.*External     \| (?P<symbol>[?]+[^?].*?absl.*?|_?Absl.*?)($| \(.*)'
+	# Typical exported symbols in dumpbin /directives look like:
+	#    /EXPORT:?kHexChar@numbers_internal@absl@@3QBDB,DATA
+	ABSL_EXPORTED_RE = r'.*/EXPORT:(.*),.*'
+
+	absl_symbols = set()
+	dll_exports = set()
+
+	for file in files:
+		# Track all of the functions exported with __declspec(dllexport) and
+		# don't list them in the .def file - double-exports are not allowed. The
+		# error is "lld-link: error: duplicate /export option".
+		stdout = subprocess.check_output(['dumpbin', '/directives', file])
+		for line in stdout.splitlines():
+			line = line.decode('utf-8')
+			match = re.match(ABSL_EXPORTED_RE, line)
+			if match:
+				dll_exports.add(match.groups()[0])
+	print(f'Found {len(dll_exports)} already exported symbols')
+
+	for file in files:
+		stdout = subprocess.check_output(['dumpbin', '/symbols', file])
+		for line in stdout.splitlines():
+			try:
+				line = line.decode('utf-8')
+			except UnicodeDecodeError:
+				# Due to a dumpbin bug there are sometimes invalid utf-8 characters in
+				# the output. This only happens on an unimportant line so it can
+				# safely and silently be skipped.
+				# https://developercommunity.visualstudio.com/content/problem/1091330/dumpbin-symbols-produces-randomly-wrong-output-on.html
+				continue
+			match = re.match(ABSL_SYM_RE, line)
+			if match:
+				symbol = match.group('symbol')
+				assert symbol.count(' ') == 0, ('Regex matched too much, probably got undecorated name as well')
+				# Avoid getting names exported with dllexport, to avoid
+				# "lld-link: error: duplicate /export option" on symbols such as:
+				# ?kHexChar@numbers_internal@absl@@3QBDB
+				if symbol in dll_exports:
+					continue
+				# Avoid to export deleting dtors since they trigger
+				# "lld-link: error: export of deleting dtor" linker errors, see
+				# crbug.com/1201277.
+				if symbol.startswith('??_G'):
+					continue
+				# Strip any leading underscore for C names (as in __cdecl). It's only
+				# there on x86, but the x86 toolchain falls over when you include it!
+				if arch == 'x86' and symbol.startswith('_'):
+					symbol = symbol[1:]
+				absl_symbols.add(symbol)
+	print(f'Found {len(absl_symbols)} absl symbols')
+
+	with open(symbols_def, 'w', newline='') as file:
+		file.write('EXPORTS\n')
+		for s in sorted(absl_symbols):
+			file.write(f'    {s}\n')
 
 
 PACKAGES = {
@@ -163,22 +293,23 @@ for arch in args.PLATFORMS:
 	arch = arch.lower()
 	for lib in args.LIBS:
 		cpp_defines = ''
-		build_monolith = (lib == 'monolith')
 		for conf in args.CONFIGURATIONS:
-			### Generate build.ninja files in out.gn/V8_VERSION/toolset/arch/conf/lib directory
-			out_dir = os.path.join('out.gn', args.V8_VERSION, toolset, arch, conf, lib)
+			### Generate build.ninja files in v8/out.gn/V8_VERSION/toolset/arch/conf/lib directory
+			out_dir = os.path.join(os.getcwd(), 'v8', 'out.gn', args.V8_VERSION, toolset, arch, conf, lib)
 			options = args.GN_OPTIONS
 			options['is_debug'] = (conf == 'Debug')
 			options['target_cpu'] = arch
-			options['is_component_build'] = not build_monolith
-			options['v8_monolithic'] = build_monolith
-			target = 'v8'
-			if build_monolith:
-				target += '_monolith'
-			build(target, options, env, out_dir)
+			if lib == 'shared':
+				options['is_component_build'] = True
+			elif lib == 'monolith':
+				options['v8_monolithic'] = True
+
+			generate_abseil_exports(options, out_dir=out_dir, env=env)
+			build('v8' if lib == 'shared' else 'v8_monolith', options, work_dir='v8', out_dir=out_dir, env=env)
+
 			cpp_defines += """
 	<PreprocessorDefinitions Condition="'$(Configuration)' == '{conf}'">{defines};%(PreprocessorDefinitions)</PreprocessorDefinitions>
-	""".format(conf=conf, defines=cpp_defines_from_v8_json_build_config(os.path.join('v8', out_dir, 'v8_build_config.json')))
+	""".format(conf=conf, defines=cpp_defines_from_v8_json_build_config(out_dir))
 
 		if arch == 'x86':
 			platform = "('$(Platform)' == 'x86' Or '$(Platform)' == 'Win32')"
